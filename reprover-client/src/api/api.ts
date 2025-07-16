@@ -1,9 +1,7 @@
 import { WorkoutPlan, ParseWorkoutRequest, ApiError, WorkoutLog, LogWorkoutResponse, ExerciseHistory } from '../types/workout';
 
-// Use the backend Vercel URL
-// If you've set up www.reprover.dev for backend, change to: https://www.reprover.dev
-// If you've set up api.reprover.dev for backend, change to: https://api.reprover.dev
-const API_BASE_URL = 'https://reprover-oemjx3f9a-sean-vernons-projects-31ef7fc1.vercel.app';
+// Backend API is at www.reprover.dev
+const API_BASE_URL = 'https://www.reprover.dev';
 
 export class ApiClient {
   static async parseWorkout(text: string): Promise<WorkoutPlan> {
