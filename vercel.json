@@ -2,6 +2,9 @@
   "functions": {
     "api/parse-workout.js": {
       "maxDuration": 30
+    },
+    "api/exercise-info.js": {
+      "maxDuration": 30
     }
   }
 }
