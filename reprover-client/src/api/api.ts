@@ -1,7 +1,7 @@
 import { WorkoutPlan, ParseWorkoutRequest, ApiError, WorkoutLog, LogWorkoutResponse, ExerciseHistory } from '../types/workout';
 
-// Backend API is at www.reprover.dev
-const API_BASE_URL = 'https://www.reprover.dev';
+// Backend API is at reprover.dev (or www.reprover.dev - both work)
+const API_BASE_URL = 'https://reprover.dev';
 
 export class ApiClient {
   static async parseWorkout(text: string): Promise<WorkoutPlan> {
