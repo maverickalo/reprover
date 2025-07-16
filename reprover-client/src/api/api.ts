@@ -1,6 +1,6 @@
 import { WorkoutPlan, ParseWorkoutRequest, ApiError, WorkoutLog, LogWorkoutResponse, ExerciseHistory } from '../types/workout';
 
-const API_BASE_URL = 'https://www.reprover.dev';
+const API_BASE_URL = 'https://reprover-oemjx3f9a-sean-vernons-projects-31ef7fc1.vercel.app';
 
 export class ApiClient {
   static async parseWorkout(text: string): Promise<WorkoutPlan> {
