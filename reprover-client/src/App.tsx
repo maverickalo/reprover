@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { WorkoutInput } from './components/WorkoutInput';
 import { WorkoutPlanReview } from './components/WorkoutPlanReview';
 import { WorkoutLogger } from './components/WorkoutLogger';
+import { ProgressChart } from './components/ProgressChart';
 import { Toast } from './components/Toast';
 import { ApiClient } from './api/api';
 import { WorkoutPlan, ExerciseActual, WorkoutLog } from './types/workout';
@@ -13,7 +14,7 @@ interface ToastState {
   type: 'success' | 'error' | 'info';
 }
 
-type AppView = 'plan' | 'log';
+type AppView = 'plan' | 'log' | 'progress';
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -159,6 +160,15 @@ function App() {
           >
             Log Workout
           </button>
+          <button
+            style={{
+              ...styles.viewButton,
+              ...(currentView === 'progress' ? styles.activeView : styles.inactiveView),
+            }}
+            onClick={() => setCurrentView('progress')}
+          >
+            Progress
+          </button>
         </div>
       )}
 
@@ -177,13 +187,17 @@ function App() {
             </>
           )}
         </>
-      ) : (
+      ) : currentView === 'log' ? (
         workoutPlan && (
           <WorkoutLogger
             plan={workoutPlan}
             onSave={handleSaveLog}
             isSaving={isSaving}
           />
+        )
+      ) : (
+        workoutPlan && (
+          <ProgressChart workoutPlan={workoutPlan} />
         )
       )}
 

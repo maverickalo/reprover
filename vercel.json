@@ -8,6 +8,9 @@
     },
     "api/log-workout.js": {
       "maxDuration": 30
+    },
+    "api/history.js": {
+      "maxDuration": 30
     }
   }
 }

@@ -41,3 +41,11 @@ export interface LogWorkoutResponse {
   status: 'ok';
   id: string;
 }
+
+// History types
+export interface ExerciseHistory {
+  date: string;
+  reps: number | null;
+  weight: number | null;
+  round: number;
+}
