@@ -1,5 +1,6 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { AnimatePresenceWrapper } from './AnimatePresenceWrapper';
 
 interface ModalOverlayProps {
   isOpen: boolean;
@@ -11,7 +12,7 @@ export const ModalOverlay: React.FC<ModalOverlayProps> = ({ isOpen, onClose, chi
   if (!isOpen) return null;
   
   return (
-    <AnimatePresence>
+    <AnimatePresenceWrapper>
       <>
         <motion.div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
@@ -32,6 +33,6 @@ export const ModalOverlay: React.FC<ModalOverlayProps> = ({ isOpen, onClose, chi
           </div>
         </motion.div>
       </>
-    </AnimatePresence>
+    </AnimatePresenceWrapper>
   );
 };

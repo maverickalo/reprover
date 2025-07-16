@@ -1,5 +1,6 @@
 import React from 'react';
-import { motion, AnimatePresence, PanInfo, useMotionValue, useTransform } from 'framer-motion';
+import { motion, PanInfo, useMotionValue, useTransform } from 'framer-motion';
+import { AnimatePresenceWrapper } from './AnimatePresenceWrapper';
 
 interface BottomSheetProps {
   isOpen: boolean;
@@ -20,7 +21,7 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, child
   if (!isOpen) return null;
   
   return (
-    <AnimatePresence>
+    <AnimatePresenceWrapper>
       <>
         <motion.div
           className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
@@ -48,6 +49,6 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({ isOpen, onClose, child
           </div>
         </motion.div>
       </>
-    </AnimatePresence>
+    </AnimatePresenceWrapper>
   );
 };
