@@ -1,3 +1,5 @@
 .env
+.env.firebase
 node_modules/
 .DS_Store
+.vercel

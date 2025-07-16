@@ -1,5 +1,6 @@
 import React from 'react';
-import { WorkoutPlan, WorkoutRound, Exercise } from '../types/workout';
+import { WorkoutPlan, Exercise } from '../types/workout';
+import * as S from './WorkoutPlanReview.styled';
 
 interface WorkoutPlanReviewProps {
   plan: WorkoutPlan;
@@ -36,196 +37,90 @@ export const WorkoutPlanReview: React.FC<WorkoutPlanReviewProps> = ({
     onPlanChange(newPlan);
   };
 
-  const styles = {
-    container: {
-      width: '100%',
-      maxWidth: '800px',
-      margin: '0 auto',
-      padding: '20px',
-    },
-    header: {
-      fontSize: '24px',
-      fontWeight: 'bold',
-      marginBottom: '20px',
-      textAlign: 'center' as const,
-    },
-    roundContainer: {
-      marginBottom: '24px',
-      padding: '16px',
-      border: '1px solid #e0e0e0',
-      borderRadius: '8px',
-      backgroundColor: '#f9f9f9',
-    },
-    roundHeader: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      marginBottom: '16px',
-      fontSize: '18px',
-      fontWeight: '600',
-    },
-    roundInput: {
-      width: '50px',
-      padding: '4px 8px',
-      fontSize: '16px',
-      border: '1px solid #ccc',
-      borderRadius: '4px',
-    },
-    exerciseContainer: {
-      marginBottom: '12px',
-      padding: '12px',
-      backgroundColor: 'white',
-      borderRadius: '6px',
-      border: '1px solid #e5e5e5',
-    },
-    exerciseHeader: {
-      marginBottom: '8px',
-    },
-    exerciseName: {
-      width: '100%',
-      padding: '8px',
-      fontSize: '16px',
-      fontWeight: '500',
-      border: '1px solid #ddd',
-      borderRadius: '4px',
-      marginBottom: '8px',
-    },
-    fieldsGrid: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-      gap: '12px',
-    },
-    fieldGroup: {
-      display: 'flex',
-      flexDirection: 'column' as const,
-    },
-    fieldLabel: {
-      fontSize: '12px',
-      color: '#666',
-      marginBottom: '4px',
-    },
-    fieldInput: {
-      padding: '6px',
-      fontSize: '14px',
-      border: '1px solid #ddd',
-      borderRadius: '4px',
-    },
-    saveButton: {
-      display: 'block',
-      margin: '32px auto 0',
-      padding: '12px 32px',
-      fontSize: '18px',
-      fontWeight: 'bold',
-      color: 'white',
-      backgroundColor: '#28a745',
-      border: 'none',
-      borderRadius: '8px',
-      cursor: 'pointer',
-    },
-  };
-
   return (
-    <div style={styles.container}>
-      <h2 style={styles.header}>Review Your Workout Plan</h2>
+    <S.ReviewContainer>
+      <S.ReviewHeader>Review Your Workout Plan</S.ReviewHeader>
       
       {plan.map((round, roundIndex) => (
-        <div key={roundIndex} style={styles.roundContainer}>
-          <div style={styles.roundHeader}>
+        <S.RoundContainer key={roundIndex}>
+          <S.RoundHeader>
             <span>Rounds:</span>
-            <input
+            <S.RoundInput
               type="number"
               value={round.rounds}
               onChange={(e) => updateRounds(roundIndex, Number(e.target.value))}
-              style={styles.roundInput}
               min="1"
             />
-          </div>
+          </S.RoundHeader>
           
           {round.exercises.map((exercise, exerciseIndex) => (
-            <div key={exerciseIndex} style={styles.exerciseContainer}>
-              <div style={styles.exerciseHeader}>
-                <input
-                  type="text"
-                  value={exercise.name}
-                  onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'name', e.target.value)}
-                  style={styles.exerciseName}
-                  placeholder="Exercise name"
-                />
-              </div>
+            <S.ExerciseContainer key={exerciseIndex}>
+              <S.ExerciseName
+                type="text"
+                value={exercise.name}
+                onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'name', e.target.value)}
+                placeholder="Exercise name"
+              />
               
-              <div style={styles.fieldsGrid}>
-                <div style={styles.fieldGroup}>
-                  <label style={styles.fieldLabel}>Reps</label>
-                  <input
+              <S.FieldsGrid>
+                <S.FieldGroup>
+                  <S.FieldLabel>Reps</S.FieldLabel>
+                  <S.FieldInput
                     type="number"
                     value={exercise.reps || ''}
                     onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'reps', e.target.value)}
-                    style={styles.fieldInput}
                     placeholder="-"
                   />
-                </div>
+                </S.FieldGroup>
                 
-                <div style={styles.fieldGroup}>
-                  <label style={styles.fieldLabel}>Weight</label>
-                  <input
+                <S.FieldGroup>
+                  <S.FieldLabel>Weight</S.FieldLabel>
+                  <S.FieldInput
                     type="number"
                     value={exercise.weight || ''}
                     onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight', e.target.value)}
-                    style={styles.fieldInput}
                     placeholder="-"
                   />
-                </div>
+                </S.FieldGroup>
                 
-                <div style={styles.fieldGroup}>
-                  <label style={styles.fieldLabel}>Unit</label>
-                  <input
+                <S.FieldGroup>
+                  <S.FieldLabel>Unit</S.FieldLabel>
+                  <S.FieldInput
                     type="text"
                     value={exercise.weight_unit || ''}
                     onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight_unit', e.target.value)}
-                    style={styles.fieldInput}
                     placeholder="-"
                   />
-                </div>
+                </S.FieldGroup>
                 
-                <div style={styles.fieldGroup}>
-                  <label style={styles.fieldLabel}>Duration</label>
-                  <input
+                <S.FieldGroup>
+                  <S.FieldLabel>Duration</S.FieldLabel>
+                  <S.FieldInput
                     type="text"
                     value={exercise.duration || ''}
                     onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'duration', e.target.value)}
-                    style={styles.fieldInput}
                     placeholder="-"
                   />
-                </div>
+                </S.FieldGroup>
                 
-                <div style={styles.fieldGroup}>
-                  <label style={styles.fieldLabel}>Note</label>
-                  <input
+                <S.FieldGroup>
+                  <S.FieldLabel>Note</S.FieldLabel>
+                  <S.FieldInput
                     type="text"
                     value={exercise.note || ''}
                     onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'note', e.target.value)}
-                    style={styles.fieldInput}
                     placeholder="-"
                   />
-                </div>
-              </div>
-            </div>
+                </S.FieldGroup>
+              </S.FieldsGrid>
+            </S.ExerciseContainer>
           ))}
-        </div>
+        </S.RoundContainer>
       ))}
       
-      <button 
-        style={styles.saveButton}
-        onClick={onSave}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#218838';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = '#28a745';
-        }}
-      >
+      <S.SaveButton onClick={onSave}>
         Save Plan
-      </button>
-    </div>
+      </S.SaveButton>
+    </S.ReviewContainer>
   );
 };

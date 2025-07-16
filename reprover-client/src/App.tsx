@@ -6,6 +6,8 @@ import { ProgressChart } from './components/ProgressChart';
 import { Toast } from './components/Toast';
 import { ApiClient } from './api/api';
 import { WorkoutPlan, ExerciseActual, WorkoutLog } from './types/workout';
+import { GlobalStyles } from './styles/GlobalStyles';
+import * as S from './App.styled';
 import './App.css';
 
 interface ToastState {
@@ -67,13 +69,8 @@ function App() {
         actuals: actuals
       };
       
-      // For now, just log to console since backend isn't ready
-      console.log('Workout Log:', JSON.stringify(workoutLog, null, 2));
-      showToast('Workout logged successfully! (Check console)', 'success');
-      
-      // TODO: When backend is ready, uncomment this:
-      // const response = await ApiClient.logWorkout(workoutLog);
-      // showToast('Workout logged successfully!', 'success');
+      await ApiClient.logWorkout(workoutLog);
+      showToast('Workout logged successfully!', 'success');
     } catch (error) {
       showToast('Failed to save workout log', 'error');
     } finally {
@@ -81,134 +78,78 @@ function App() {
     }
   };
 
-  const styles = {
-    container: {
-      minHeight: '100vh',
-      backgroundColor: '#f5f5f5',
-      padding: '20px',
-    },
-    header: {
-      textAlign: 'center' as const,
-      marginBottom: '32px',
-    },
-    title: {
-      fontSize: '32px',
-      fontWeight: 'bold',
-      color: '#333',
-      margin: '0 0 8px 0',
-    },
-    subtitle: {
-      fontSize: '16px',
-      color: '#666',
-      margin: '0',
-    },
-    divider: {
-      width: '100%',
-      height: '1px',
-      backgroundColor: '#e0e0e0',
-      margin: '32px 0',
-    },
-    viewToggle: {
-      display: 'flex',
-      justifyContent: 'center',
-      gap: '16px',
-      marginBottom: '24px',
-    },
-    viewButton: {
-      padding: '10px 24px',
-      fontSize: '16px',
-      fontWeight: '500',
-      border: '2px solid #007bff',
-      borderRadius: '6px',
-      cursor: 'pointer',
-      transition: 'all 0.2s',
-    },
-    activeView: {
-      backgroundColor: '#007bff',
-      color: 'white',
-    },
-    inactiveView: {
-      backgroundColor: 'white',
-      color: '#007bff',
-    },
-  };
-
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <h1 style={styles.title}>Reprover</h1>
-        <p style={styles.subtitle}>Transform your trainer's messages into structured workout plans</p>
-      </header>
+    <>
+      <GlobalStyles />
+      <S.AppContainer>
+        <S.Header>
+          <S.Title>Reprover</S.Title>
+          <S.Subtitle>Transform your trainer's messages into structured workout plans</S.Subtitle>
+        </S.Header>
 
-      {workoutPlan && (
-        <div style={styles.viewToggle}>
-          <button
-            style={{
-              ...styles.viewButton,
-              ...(currentView === 'plan' ? styles.activeView : styles.inactiveView),
-            }}
-            onClick={() => setCurrentView('plan')}
-          >
-            Plan Workout
-          </button>
-          <button
-            style={{
-              ...styles.viewButton,
-              ...(currentView === 'log' ? styles.activeView : styles.inactiveView),
-            }}
-            onClick={() => setCurrentView('log')}
-          >
-            Log Workout
-          </button>
-          <button
-            style={{
-              ...styles.viewButton,
-              ...(currentView === 'progress' ? styles.activeView : styles.inactiveView),
-            }}
-            onClick={() => setCurrentView('progress')}
-          >
-            Progress
-          </button>
-        </div>
-      )}
-
-      {currentView === 'plan' ? (
-        <>
-          <WorkoutInput onParse={handleParse} isLoading={isLoading} />
-          
+        <S.ContentContainer>
           {workoutPlan && (
-            <>
-              <div style={styles.divider} />
-              <WorkoutPlanReview 
-                plan={workoutPlan} 
-                onPlanChange={setWorkoutPlan}
-                onSave={handleSavePlan}
-              />
-            </>
+            <S.ViewToggle>
+              <S.ViewButton
+                $active={currentView === 'plan'}
+                onClick={() => setCurrentView('plan')}
+              >
+                Plan Workout
+              </S.ViewButton>
+              <S.ViewButton
+                $active={currentView === 'log'}
+                onClick={() => setCurrentView('log')}
+              >
+                Log Workout
+              </S.ViewButton>
+              <S.ViewButton
+                $active={currentView === 'progress'}
+                onClick={() => setCurrentView('progress')}
+              >
+                Progress
+              </S.ViewButton>
+            </S.ViewToggle>
           )}
-        </>
-      ) : currentView === 'log' ? (
-        workoutPlan && (
-          <WorkoutLogger
-            plan={workoutPlan}
-            onSave={handleSaveLog}
-            isSaving={isSaving}
-          />
-        )
-      ) : (
-        workoutPlan && (
-          <ProgressChart workoutPlan={workoutPlan} />
-        )
-      )}
 
-      {toast.show && (
-        <Toast 
-          message={toast.message}
-          type={toast.type}
-          onClose={hideToast}
-        />
-      )}
-    </div>
+          {currentView === 'plan' ? (
+            <>
+              <WorkoutInput onParse={handleParse} isLoading={isLoading} />
+              
+              {workoutPlan && (
+                <>
+                  <S.Divider />
+                  <WorkoutPlanReview 
+                    plan={workoutPlan} 
+                    onPlanChange={setWorkoutPlan}
+                    onSave={handleSavePlan}
+                  />
+                </>
+              )}
+            </>
+          ) : currentView === 'log' ? (
+            workoutPlan && (
+              <WorkoutLogger
+                plan={workoutPlan}
+                onSave={handleSaveLog}
+                isSaving={isSaving}
+              />
+            )
+          ) : (
+            workoutPlan && (
+              <ProgressChart workoutPlan={workoutPlan} />
+            )
+          )}
+        </S.ContentContainer>
+
+        {toast.show && (
+          <Toast 
+            message={toast.message}
+            type={toast.type}
+            onClose={hideToast}
+          />
+        )}
+      </S.AppContainer>
+    </>
   );
 }
 
