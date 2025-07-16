@@ -22,3 +22,22 @@ export interface ApiError {
   error: string;
   details?: string;
 }
+
+// Logger types
+export interface ExerciseActual {
+  name: string;
+  round: number;
+  reps: number | null;
+  weight: number | null;
+}
+
+export interface WorkoutLog {
+  timestamp: string; // ISO string
+  plan: WorkoutPlan;
+  actuals: ExerciseActual[];
+}
+
+export interface LogWorkoutResponse {
+  status: 'ok';
+  id: string;
+}

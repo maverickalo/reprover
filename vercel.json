@@ -5,6 +5,9 @@
     },
     "api/exercise-info.js": {
       "maxDuration": 30
+    },
+    "api/log-workout.js": {
+      "maxDuration": 30
     }
   }
 }

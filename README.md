@@ -50,6 +50,19 @@ POST /api/parse-workout
 ]
 ```
 
+## Firebase Setup
+
+1. Create a Firebase project at https://console.firebase.google.com
+2. Create a Firestore database in the project
+3. Generate a service account key:
+   - Go to Project Settings → Service Accounts
+   - Click "Generate new private key"
+   - Download the JSON file
+4. Extract these values from the JSON file:
+   - `project_id` → FIREBASE_PROJECT_ID
+   - `client_email` → FIREBASE_CLIENT_EMAIL
+   - `private_key` → FIREBASE_PRIVATE_KEY
+
 ## Deployment to Vercel
 
 1. Install Vercel CLI:
@@ -57,9 +70,12 @@ POST /api/parse-workout
 npm i -g vercel
 ```
 
-2. Set up your OpenAI API key as a Vercel secret:
+2. Set up environment variables as Vercel secrets:
 ```bash
 vercel secrets add openai-api-key "your-openai-api-key-here"
+vercel secrets add firebase-project-id "your-project-id"
+vercel secrets add firebase-client-email "your-client-email"
+vercel secrets add firebase-private-key "your-private-key"
 ```
 
 3. Deploy to Vercel:

@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { WorkoutInput } from './components/WorkoutInput';
 import { WorkoutPlanReview } from './components/WorkoutPlanReview';
+import { WorkoutLogger } from './components/WorkoutLogger';
 import { Toast } from './components/Toast';
 import { ApiClient } from './api/api';
-import { WorkoutPlan } from './types/workout';
+import { WorkoutPlan, ExerciseActual, WorkoutLog } from './types/workout';
 import './App.css';
 
 interface ToastState {
@@ -12,9 +13,13 @@ interface ToastState {
   type: 'success' | 'error' | 'info';
 }
 
+type AppView = 'plan' | 'log';
+
 function App() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
+  const [currentView, setCurrentView] = useState<AppView>('plan');
   const [toast, setToast] = useState<ToastState>({ 
     show: false, 
     message: '', 
@@ -46,7 +51,32 @@ function App() {
   const handleSavePlan = () => {
     if (workoutPlan) {
       console.log('Saving workout plan:', JSON.stringify(workoutPlan, null, 2));
-      showToast('Plan saved! (Check console for JSON)', 'success');
+      showToast('Plan ready! Switch to "Log Workout" to track your progress.', 'success');
+    }
+  };
+
+  const handleSaveLog = async (actuals: ExerciseActual[]) => {
+    if (!workoutPlan) return;
+    
+    setIsSaving(true);
+    try {
+      const workoutLog: WorkoutLog = {
+        timestamp: new Date().toISOString(),
+        plan: workoutPlan,
+        actuals: actuals
+      };
+      
+      // For now, just log to console since backend isn't ready
+      console.log('Workout Log:', JSON.stringify(workoutLog, null, 2));
+      showToast('Workout logged successfully! (Check console)', 'success');
+      
+      // TODO: When backend is ready, uncomment this:
+      // const response = await ApiClient.logWorkout(workoutLog);
+      // showToast('Workout logged successfully!', 'success');
+    } catch (error) {
+      showToast('Failed to save workout log', 'error');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -77,6 +107,29 @@ function App() {
       backgroundColor: '#e0e0e0',
       margin: '32px 0',
     },
+    viewToggle: {
+      display: 'flex',
+      justifyContent: 'center',
+      gap: '16px',
+      marginBottom: '24px',
+    },
+    viewButton: {
+      padding: '10px 24px',
+      fontSize: '16px',
+      fontWeight: '500',
+      border: '2px solid #007bff',
+      borderRadius: '6px',
+      cursor: 'pointer',
+      transition: 'all 0.2s',
+    },
+    activeView: {
+      backgroundColor: '#007bff',
+      color: 'white',
+    },
+    inactiveView: {
+      backgroundColor: 'white',
+      color: '#007bff',
+    },
   };
 
   return (
@@ -86,17 +139,52 @@ function App() {
         <p style={styles.subtitle}>Transform your trainer's messages into structured workout plans</p>
       </header>
 
-      <WorkoutInput onParse={handleParse} isLoading={isLoading} />
-      
       {workoutPlan && (
+        <div style={styles.viewToggle}>
+          <button
+            style={{
+              ...styles.viewButton,
+              ...(currentView === 'plan' ? styles.activeView : styles.inactiveView),
+            }}
+            onClick={() => setCurrentView('plan')}
+          >
+            Plan Workout
+          </button>
+          <button
+            style={{
+              ...styles.viewButton,
+              ...(currentView === 'log' ? styles.activeView : styles.inactiveView),
+            }}
+            onClick={() => setCurrentView('log')}
+          >
+            Log Workout
+          </button>
+        </div>
+      )}
+
+      {currentView === 'plan' ? (
         <>
-          <div style={styles.divider} />
-          <WorkoutPlanReview 
-            plan={workoutPlan} 
-            onPlanChange={setWorkoutPlan}
-            onSave={handleSavePlan}
-          />
+          <WorkoutInput onParse={handleParse} isLoading={isLoading} />
+          
+          {workoutPlan && (
+            <>
+              <div style={styles.divider} />
+              <WorkoutPlanReview 
+                plan={workoutPlan} 
+                onPlanChange={setWorkoutPlan}
+                onSave={handleSavePlan}
+              />
+            </>
+          )}
         </>
+      ) : (
+        workoutPlan && (
+          <WorkoutLogger
+            plan={workoutPlan}
+            onSave={handleSaveLog}
+            isSaving={isSaving}
+          />
+        )
       )}
 
       {toast.show && (
