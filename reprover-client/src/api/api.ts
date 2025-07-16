@@ -1,5 +1,8 @@
 import { WorkoutPlan, ParseWorkoutRequest, ApiError, WorkoutLog, LogWorkoutResponse, ExerciseHistory } from '../types/workout';
 
+// Use the backend Vercel URL
+// If you've set up www.reprover.dev for backend, change to: https://www.reprover.dev
+// If you've set up api.reprover.dev for backend, change to: https://api.reprover.dev
 const API_BASE_URL = 'https://reprover-oemjx3f9a-sean-vernons-projects-31ef7fc1.vercel.app';
 
 export class ApiClient {
@@ -20,14 +23,39 @@ export class ApiClient {
       console.log('Response headers:', response.headers);
 
       if (!response.ok) {
-        const errorData = await response.json() as ApiError;
-        console.error('API Error:', errorData);
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json() as ApiError;
+          console.error('API Error:', errorData);
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          console.error('Could not parse error response');
+        }
+        throw new Error(errorMessage);
       }
 
-      const data = await response.json() as WorkoutPlan;
-      console.log('Parsed response:', data);
-      return data;
+      // Check if response has content
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Response is not JSON');
+      }
+
+      const responseText = await response.text();
+      console.log('Response text:', responseText);
+      
+      if (!responseText) {
+        throw new Error('Empty response body');
+      }
+
+      try {
+        const data = JSON.parse(responseText) as WorkoutPlan;
+        console.log('Parsed response:', data);
+        return data;
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Failed to parse:', responseText);
+        throw new Error('Invalid JSON response');
+      }
     } catch (error) {
       console.error('Fetch error:', error);
       if (error instanceof Error) {
