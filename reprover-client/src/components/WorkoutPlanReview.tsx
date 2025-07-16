@@ -1,126 +1,154 @@
 import React from 'react';
-import { WorkoutPlan, Exercise } from '../types/workout';
-import * as S from './WorkoutPlanReview.styled';
+import { motion } from 'framer-motion';
+import { WorkoutPlan, WorkoutRound, Exercise } from '../types/workout';
+import { Button } from './Button';
+import { Card } from './Card';
+import { TextInput } from './TextInput';
+import { staggerListVariants } from '../animations/staggerListVariants';
 
 interface WorkoutPlanReviewProps {
-  plan: WorkoutPlan;
-  onPlanChange: (plan: WorkoutPlan) => void;
+  workoutPlan: WorkoutPlan;
+  onChange: (plan: WorkoutPlan) => void;
   onSave: () => void;
 }
 
 export const WorkoutPlanReview: React.FC<WorkoutPlanReviewProps> = ({ 
-  plan, 
-  onPlanChange, 
+  workoutPlan, 
+  onChange, 
   onSave 
 }) => {
-  const updateExercise = (
-    roundIndex: number, 
-    exerciseIndex: number, 
-    field: keyof Exercise, 
-    value: string | number | null
-  ) => {
-    const newPlan = [...plan];
-    const exercise = newPlan[roundIndex].exercises[exerciseIndex];
-    
-    if (field === 'reps' || field === 'weight') {
-      exercise[field] = value === '' ? null : Number(value);
-    } else {
-      exercise[field] = value as any;
-    }
-    
-    onPlanChange(newPlan);
+  const updateRound = (roundIndex: number, field: keyof WorkoutRound, value: any) => {
+    const newPlan = [...workoutPlan];
+    newPlan[roundIndex] = { ...newPlan[roundIndex], [field]: value };
+    onChange(newPlan);
   };
 
-  const updateRounds = (roundIndex: number, rounds: number) => {
-    const newPlan = [...plan];
-    newPlan[roundIndex].rounds = rounds;
-    onPlanChange(newPlan);
+  const updateExercise = (roundIndex: number, exerciseIndex: number, field: keyof Exercise, value: any) => {
+    const newPlan = [...workoutPlan];
+    const newExercises = [...newPlan[roundIndex].exercises];
+    newExercises[exerciseIndex] = { ...newExercises[exerciseIndex], [field]: value };
+    newPlan[roundIndex] = { ...newPlan[roundIndex], exercises: newExercises };
+    onChange(newPlan);
+  };
+
+  const addExercise = (roundIndex: number) => {
+    const newExercise: Exercise = {
+      name: 'New Exercise',
+      reps: null,
+      weight: null,
+      weight_unit: null,
+      duration: null,
+      note: null
+    };
+    const newPlan = [...workoutPlan];
+    newPlan[roundIndex] = {
+      ...newPlan[roundIndex],
+      exercises: [...newPlan[roundIndex].exercises, newExercise]
+    };
+    onChange(newPlan);
+  };
+
+  const removeExercise = (roundIndex: number, exerciseIndex: number) => {
+    const newPlan = [...workoutPlan];
+    newPlan[roundIndex] = {
+      ...newPlan[roundIndex],
+      exercises: newPlan[roundIndex].exercises.filter((_, i) => i !== exerciseIndex)
+    };
+    onChange(newPlan);
   };
 
   return (
-    <S.ReviewContainer>
-      <S.ReviewHeader>Review Your Workout Plan</S.ReviewHeader>
-      
-      {plan.map((round, roundIndex) => (
-        <S.RoundContainer key={roundIndex}>
-          <S.RoundHeader>
-            <span>Rounds:</span>
-            <S.RoundInput
-              type="number"
-              value={round.rounds}
-              onChange={(e) => updateRounds(roundIndex, Number(e.target.value))}
-              min="1"
-            />
-          </S.RoundHeader>
-          
-          {round.exercises.map((exercise, exerciseIndex) => (
-            <S.ExerciseContainer key={exerciseIndex}>
-              <S.ExerciseName
-                type="text"
-                value={exercise.name}
-                onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'name', e.target.value)}
-                placeholder="Exercise name"
-              />
-              
-              <S.FieldsGrid>
-                <S.FieldGroup>
-                  <S.FieldLabel>Reps</S.FieldLabel>
-                  <S.FieldInput
+    <Card>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-100">Review & Edit Plan</h2>
+          <Button onClick={onSave} variant="primary">
+            Save Plan
+          </Button>
+        </div>
+
+        <motion.div 
+          className="space-y-6"
+          variants={staggerListVariants.list}
+          initial="hidden"
+          animate="show"
+        >
+          {workoutPlan.map((round, roundIndex) => (
+            <motion.div 
+              key={roundIndex}
+              variants={staggerListVariants.item}
+              className="bg-dark-bg rounded-lg p-4 border border-gray-800"
+            >
+              <div className="flex items-center gap-4 mb-4">
+                <h3 className="text-lg font-semibold text-primary-400">Round {roundIndex + 1}</h3>
+                <div className="flex items-center gap-2">
+                  <label className="text-gray-400">Rounds:</label>
+                  <TextInput
                     type="number"
-                    value={exercise.reps || ''}
-                    onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'reps', e.target.value)}
-                    placeholder="-"
+                    value={round.rounds}
+                    onChange={(e) => updateRound(roundIndex, 'rounds', parseInt(e.target.value) || 1)}
+                    className="w-20"
+                    min="1"
                   />
-                </S.FieldGroup>
-                
-                <S.FieldGroup>
-                  <S.FieldLabel>Weight</S.FieldLabel>
-                  <S.FieldInput
-                    type="number"
-                    value={exercise.weight || ''}
-                    onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight', e.target.value)}
-                    placeholder="-"
-                  />
-                </S.FieldGroup>
-                
-                <S.FieldGroup>
-                  <S.FieldLabel>Unit</S.FieldLabel>
-                  <S.FieldInput
-                    type="text"
-                    value={exercise.weight_unit || ''}
-                    onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight_unit', e.target.value)}
-                    placeholder="-"
-                  />
-                </S.FieldGroup>
-                
-                <S.FieldGroup>
-                  <S.FieldLabel>Duration</S.FieldLabel>
-                  <S.FieldInput
-                    type="text"
-                    value={exercise.duration || ''}
-                    onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'duration', e.target.value)}
-                    placeholder="-"
-                  />
-                </S.FieldGroup>
-                
-                <S.FieldGroup>
-                  <S.FieldLabel>Note</S.FieldLabel>
-                  <S.FieldInput
-                    type="text"
-                    value={exercise.note || ''}
-                    onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'note', e.target.value)}
-                    placeholder="-"
-                  />
-                </S.FieldGroup>
-              </S.FieldsGrid>
-            </S.ExerciseContainer>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {round.exercises.map((exercise, exerciseIndex) => (
+                  <motion.div 
+                    key={exerciseIndex}
+                    className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 bg-card-bg rounded-md"
+                    whileHover={{ backgroundColor: "rgba(255,255,255,0.02)" }}
+                  >
+                    <TextInput
+                      value={exercise.name}
+                      onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'name', e.target.value)}
+                      placeholder="Exercise name"
+                      className="md:col-span-2"
+                    />
+                    
+                    <TextInput
+                      type="number"
+                      value={exercise.reps || ''}
+                      onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'reps', e.target.value ? parseInt(e.target.value) : null)}
+                      placeholder="Reps"
+                    />
+                    
+                    <TextInput
+                      type="number"
+                      value={exercise.weight || ''}
+                      onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight', e.target.value ? parseFloat(e.target.value) : null)}
+                      placeholder="Weight"
+                    />
+                    
+                    <TextInput
+                      value={exercise.weight_unit || ''}
+                      onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight_unit', e.target.value || null)}
+                      placeholder="Unit"
+                    />
+                    
+                    <Button
+                      variant="ghost"
+                      onClick={() => removeExercise(roundIndex, exerciseIndex)}
+                      className="text-red-400 hover:text-red-300"
+                    >
+                      Remove
+                    </Button>
+                  </motion.div>
+                ))}
+              </div>
+
+              <Button
+                variant="ghost"
+                onClick={() => addExercise(roundIndex)}
+                className="mt-3 w-full"
+              >
+                + Add Exercise
+              </Button>
+            </motion.div>
           ))}
-        </S.RoundContainer>
-      ))}
-      
-      <S.SaveButton onClick={onSave}>
-        Save Plan
-      </S.SaveButton>
-    </S.ReviewContainer>
+        </motion.div>
+      </div>
+    </Card>
   );
 };

@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { ApiClient } from '../api/api';
 import { ExerciseHistory, WorkoutPlan } from '../types/workout';
+import { Card } from './Card';
+import { Button } from './Button';
 
 interface ProgressChartProps {
   workoutPlan: WorkoutPlan;
@@ -19,7 +22,6 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({ workoutPlan }) => 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Extract unique exercise names from workout plan
   const getUniqueExercises = (): string[] => {
     const exercises = new Set<string>();
     workoutPlan.forEach(round => {
@@ -42,6 +44,7 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({ workoutPlan }) => 
     if (selectedExercise) {
       fetchHistory();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedExercise]);
 
   const fetchHistory = async () => {
@@ -58,7 +61,6 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({ workoutPlan }) => 
     }
   };
 
-  // Format data for recharts
   const getChartData = (): ChartData[] => {
     const groupedByDate = new Map<string, { totalReps: number; maxWeight: number; count: number }>();
     
@@ -81,159 +83,118 @@ export const ProgressChart: React.FC<ProgressChartProps> = ({ workoutPlan }) => 
   };
 
   const chartData = getChartData();
-
-  const styles = {
-    container: {
-      width: '100%',
-      maxWidth: '800px',
-      margin: '0 auto',
-      padding: '20px',
-    },
-    header: {
-      fontSize: '24px',
-      fontWeight: 'bold',
-      marginBottom: '20px',
-      textAlign: 'center' as const,
-    },
-    selector: {
-      marginBottom: '24px',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: '12px',
-    },
-    select: {
-      padding: '8px 16px',
-      fontSize: '16px',
-      border: '2px solid #ddd',
-      borderRadius: '6px',
-      backgroundColor: 'white',
-      cursor: 'pointer',
-    },
-    chartContainer: {
-      width: '100%',
-      height: '400px',
-      marginBottom: '24px',
-    },
-    noData: {
-      textAlign: 'center' as const,
-      padding: '40px',
-      color: '#666',
-      fontSize: '16px',
-    },
-    loading: {
-      textAlign: 'center' as const,
-      padding: '40px',
-      color: '#007bff',
-      fontSize: '16px',
-    },
-    error: {
-      textAlign: 'center' as const,
-      padding: '20px',
-      color: '#dc3545',
-      fontSize: '16px',
-      backgroundColor: '#f8d7da',
-      borderRadius: '8px',
-      border: '1px solid #f5c6cb',
-    },
-    legend: {
-      marginTop: '16px',
-      padding: '16px',
-      backgroundColor: '#f9f9f9',
-      borderRadius: '8px',
-      fontSize: '14px',
-      lineHeight: '1.6',
-    },
-  };
+  const hasWeightData = chartData.some(d => d.weight !== null);
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.header}>Progress Charts</h2>
-      
-      <div style={styles.selector}>
-        <label htmlFor="exercise-select" style={{ fontSize: '16px', fontWeight: '600' }}>
-          Select Exercise:
-        </label>
-        <select
-          id="exercise-select"
-          value={selectedExercise}
-          onChange={(e) => setSelectedExercise(e.target.value)}
-          style={styles.select}
-        >
-          {uniqueExercises.map(exercise => (
-            <option key={exercise} value={exercise}>
-              {exercise}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {isLoading && (
-        <div style={styles.loading}>Loading history...</div>
-      )}
-
-      {error && (
-        <div style={styles.error}>
-          Error: {error}
-        </div>
-      )}
-
-      {!isLoading && !error && chartData.length === 0 && (
-        <div style={styles.noData}>
-          No history data available for {selectedExercise}. 
-          Complete some workouts to see your progress!
-        </div>
-      )}
-
-      {!isLoading && !error && chartData.length > 0 && (
-        <>
-          <div style={styles.chartContainer}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={chartData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="date" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                />
-                <YAxis yAxisId="left" />
-                <YAxis yAxisId="right" orientation="right" />
-                <Tooltip />
-                <Legend />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="reps"
-                  stroke="#8884d8"
-                  strokeWidth={2}
-                  name="Average Reps"
-                  dot={{ fill: '#8884d8' }}
-                />
-                <Line
-                  yAxisId="right"
-                  type="monotone"
-                  dataKey="weight"
-                  stroke="#82ca9d"
-                  strokeWidth={2}
-                  name="Max Weight (lbs)"
-                  dot={{ fill: '#82ca9d' }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+    <Card>
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-100 mb-4">Progress Tracking</h2>
           
-          <div style={styles.legend}>
-            <strong>Chart Guide:</strong><br />
-            • <span style={{ color: '#8884d8' }}>Purple line</span>: Average reps per workout (left axis)<br />
-            • <span style={{ color: '#82ca9d' }}>Green line</span>: Maximum weight used (right axis)<br />
-            • Each point represents a workout day where you performed {selectedExercise}
+          <div className="flex flex-wrap gap-2">
+            {uniqueExercises.map(exercise => (
+              <Button
+                key={exercise}
+                variant={selectedExercise === exercise ? 'primary' : 'ghost'}
+                onClick={() => setSelectedExercise(exercise)}
+                className="text-sm"
+              >
+                {exercise}
+              </Button>
+            ))}
           </div>
-        </>
-      )}
-    </div>
+        </div>
+
+        {isLoading && (
+          <motion.div 
+            className="flex justify-center py-12"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <svg className="animate-spin h-8 w-8 text-primary-500" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+            </svg>
+          </motion.div>
+        )}
+
+        {error && (
+          <div className="bg-red-900/20 border border-red-800 text-red-300 p-4 rounded-lg">
+            Error: {error}
+          </div>
+        )}
+
+        {!isLoading && !error && chartData.length === 0 && (
+          <div className="text-center py-12 text-gray-500">
+            No history found for {selectedExercise}. Complete some workouts to see your progress!
+          </div>
+        )}
+
+        {!isLoading && !error && chartData.length > 0 && (
+          <motion.div 
+            className="space-y-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div>
+              <h3 className="text-lg font-semibold text-gray-300 mb-4">Reps Progress</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="date" stroke="#9CA3AF" />
+                  <YAxis stroke="#9CA3AF" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1b1e24', 
+                      border: '1px solid #374151',
+                      borderRadius: '0.5rem'
+                    }} 
+                  />
+                  <Legend />
+                  <Line 
+                    type="monotone" 
+                    dataKey="reps" 
+                    stroke="#00aff0" 
+                    strokeWidth={2}
+                    dot={{ fill: '#00aff0', r: 4 }}
+                    activeDot={{ r: 6 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {hasWeightData && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-300 mb-4">Weight Progress</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="date" stroke="#9CA3AF" />
+                    <YAxis stroke="#9CA3AF" />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1b1e24', 
+                        border: '1px solid #374151',
+                        borderRadius: '0.5rem'
+                      }} 
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="weight" 
+                      stroke="#10b981" 
+                      strokeWidth={2}
+                      dot={{ fill: '#10b981', r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </div>
+    </Card>
   );
 };

@@ -4,10 +4,10 @@ import { WorkoutPlanReview } from './components/WorkoutPlanReview';
 import { WorkoutLogger } from './components/WorkoutLogger';
 import { ProgressChart } from './components/ProgressChart';
 import { Toast } from './components/Toast';
+import { PageWrapper } from './components/PageWrapper';
+import { Button } from './components/Button';
 import { ApiClient } from './api/api';
 import { WorkoutPlan, ExerciseActual, WorkoutLog } from './types/workout';
-import { GlobalStyles } from './styles/GlobalStyles';
-import * as S from './App.styled';
 import './App.css';
 
 interface ToastState {
@@ -79,77 +79,77 @@ function App() {
   };
 
   return (
-    <>
-      <GlobalStyles />
-      <S.AppContainer>
-        <S.Header>
-          <S.Title>Reprover</S.Title>
-          <S.Subtitle>Transform your trainer's messages into structured workout plans</S.Subtitle>
-        </S.Header>
+    <PageWrapper pageKey={currentView}>
+      <div className="min-h-screen">
+        <header className="bg-card-bg border-b border-gray-700 shadow-lg">
+          <div className="container py-6">
+            <h1 className="text-4xl font-bold text-primary-400 mb-2">Reprover</h1>
+            <p className="text-gray-400">Transform your trainer's messages into structured workout plans</p>
+          </div>
+        </header>
 
-        <S.ContentContainer>
+        <main className="container py-8">
           {workoutPlan && (
-            <S.ViewToggle>
-              <S.ViewButton
-                $active={currentView === 'plan'}
+            <div className="flex flex-wrap gap-2 mb-8">
+              <Button
+                variant={currentView === 'plan' ? 'primary' : 'ghost'}
                 onClick={() => setCurrentView('plan')}
               >
-                Plan Workout
-              </S.ViewButton>
-              <S.ViewButton
-                $active={currentView === 'log'}
+                Plan Builder
+              </Button>
+              <Button
+                variant={currentView === 'log' ? 'primary' : 'ghost'}
                 onClick={() => setCurrentView('log')}
               >
                 Log Workout
-              </S.ViewButton>
-              <S.ViewButton
-                $active={currentView === 'progress'}
+              </Button>
+              <Button
+                variant={currentView === 'progress' ? 'primary' : 'ghost'}
                 onClick={() => setCurrentView('progress')}
               >
                 Progress
-              </S.ViewButton>
-            </S.ViewToggle>
+              </Button>
+            </div>
           )}
 
-          {currentView === 'plan' ? (
-            <>
-              <WorkoutInput onParse={handleParse} isLoading={isLoading} />
+          {currentView === 'plan' && (
+            <div className="space-y-8">
+              <WorkoutInput 
+                onParse={handleParse} 
+                isLoading={isLoading} 
+              />
               
               {workoutPlan && (
-                <>
-                  <S.Divider />
-                  <WorkoutPlanReview 
-                    plan={workoutPlan} 
-                    onPlanChange={setWorkoutPlan}
-                    onSave={handleSavePlan}
-                  />
-                </>
+                <WorkoutPlanReview 
+                  workoutPlan={workoutPlan} 
+                  onChange={setWorkoutPlan}
+                  onSave={handleSavePlan}
+                />
               )}
-            </>
-          ) : currentView === 'log' ? (
-            workoutPlan && (
-              <WorkoutLogger
-                plan={workoutPlan}
-                onSave={handleSaveLog}
-                isSaving={isSaving}
-              />
-            )
-          ) : (
-            workoutPlan && (
-              <ProgressChart workoutPlan={workoutPlan} />
-            )
+            </div>
           )}
-        </S.ContentContainer>
 
-        {toast.show && (
-          <Toast 
-            message={toast.message}
-            type={toast.type}
-            onClose={hideToast}
-          />
-        )}
-      </S.AppContainer>
-    </>
+          {currentView === 'log' && workoutPlan && (
+            <WorkoutLogger 
+              workoutPlan={workoutPlan} 
+              onSave={handleSaveLog}
+              isSaving={isSaving}
+            />
+          )}
+
+          {currentView === 'progress' && workoutPlan && (
+            <ProgressChart workoutPlan={workoutPlan} />
+          )}
+        </main>
+
+        <Toast
+          show={toast.show}
+          message={toast.message}
+          type={toast.type}
+          onClose={hideToast}
+        />
+      </div>
+    </PageWrapper>
   );
 }
 
