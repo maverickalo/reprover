@@ -1,6 +1,5 @@
-import { parseWorkout, workoutSchema } from '../agent.js';
-
 export default async function handler(req, res) {
+  const { parseWorkout, workoutSchema } = await import('../agent.js');
   // Enable CORS
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');

@@ -1,11 +1,7 @@
 {
-  "version": 2,
   "functions": {
     "api/parse-workout.js": {
       "maxDuration": 30
     }
-  },
-  "env": {
-    "OPENAI_API_KEY": "@openai-api-key"
   }
 }
