@@ -64,7 +64,7 @@ const parseWorkout = async (text) => {
     
   - "Dumbbell press 24-32kg*12":
     [{"rounds": 1, "exercises": [
-      {"name": "Dumbbell Press", "reps": 12, "weight": null, "weight_range": "24-32kg", "weight_unit": "kg", "duration": null, "distance": null, "distance_unit": null, "note": null}
+      {"name": "Dumbbell Press", "reps": 12, "weight": 24, "weight_range": "24-32kg", "weight_unit": "kg", "duration": null, "distance": null, "distance_unit": null, "note": null}
     ]}]
     
   - "Plank - 30 seconds each side":
@@ -73,8 +73,9 @@ const parseWorkout = async (text) => {
     ]}]
   
   Important parsing rules:
-  - Exercise names should be properly capitalized (e.g., "Push-ups" not "push-ups")
-  - For weight ranges like "24-32kg", put the full range string in "weight_range" and extract the unit to "weight_unit"
+  - Exercise names should be properly capitalized and expanded (e.g., "SL" → "Single Leg", "RDL" → "Romanian Deadlift", "DB" → "Dumbbell", "BB" → "Barbell")
+  - Common abbreviations to expand: SL (Single Leg), SA (Single Arm), RDL (Romanian Deadlift), OHP (Overhead Press), HSPU (Handstand Push-up), KB (Kettlebell), DB (Dumbbell), BB (Barbell)
+  - For weight ranges like "24-32kg", put the lower value (24) in "weight", the full range string in "weight_range", and extract the unit to "weight_unit"
   - For time durations (seconds, minutes, hours), put the full time string in "duration" (e.g., "30 seconds", "2 minutes")
   - If there's a modifier like "each side" or "each arm", put it in "note"
   - If something involves distance (meters, km, miles, yards), put the number in "distance" and unit in "distance_unit"

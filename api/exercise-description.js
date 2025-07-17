@@ -36,10 +36,11 @@ export default async function handler(req, res) {
     1. Proper form and technique (2-3 key points)
     2. Common mistakes to avoid (1-2 points)
     3. Which muscles it targets
+    4. A good YouTube search query to find a tutorial video for this exercise (be specific)
     
-    Keep it concise - max 3-4 sentences total. Be direct and actionable.
+    Keep the descriptions concise - max 3-4 sentences total. Be direct and actionable.
     
-    Format the response as JSON with keys: form, mistakes, muscles`;
+    Format the response as JSON with keys: form, mistakes, muscles, youtubeQuery`;
 
     const response = await model.invoke([
       { role: 'system', content: 'You are a professional fitness instructor providing clear, concise exercise guidance.' },
@@ -61,7 +62,8 @@ export default async function handler(req, res) {
       description = {
         form: "Focus on controlled movement and proper breathing throughout the exercise.",
         mistakes: "Avoid rushing through the movement.",
-        muscles: "Various muscle groups"
+        muscles: "Various muscle groups",
+        youtubeQuery: `${exerciseName} exercise tutorial form`
       };
     }
 

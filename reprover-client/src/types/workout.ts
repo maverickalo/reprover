@@ -15,6 +15,7 @@ export interface ExerciseDescription {
   form: string;
   mistakes: string;
   muscles: string;
+  youtubeQuery: string;
 }
 
 export interface WorkoutRound {
