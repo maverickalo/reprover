@@ -162,20 +162,12 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             placeholder="Reps"
           />
           
-          {exercise.weight_range ? (
-            <TextInput
-              value={exercise.weight_range || ''}
-              onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight_range', e.target.value || null)}
-              placeholder="Weight range"
-            />
-          ) : (
-            <TextInput
-              type="number"
-              value={exercise.weight || ''}
-              onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight', e.target.value ? parseFloat(e.target.value) : null)}
-              placeholder="Weight"
-            />
-          )}
+          <TextInput
+            type="number"
+            value={exercise.weight || ''}
+            onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight', e.target.value ? parseFloat(e.target.value) : null)}
+            placeholder="Weight"
+          />
           
           <TextInput
             value={exercise.weight_unit || ''}
@@ -183,20 +175,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
             placeholder="Unit"
           />
           
-          <Button
-            variant="ghost"
-            onClick={() => {
-              if (exercise.weight_range) {
-                updateExercise(roundIndex, exerciseIndex, 'weight_range', null);
-              } else {
-                updateExercise(roundIndex, exerciseIndex, 'weight', null);
-                updateExercise(roundIndex, exerciseIndex, 'weight_range', '0-0kg');
-              }
-            }}
-            className="text-sm"
-          >
-            {exercise.weight_range ? 'Single Weight' : 'Weight Range'}
-          </Button>
+          <div className="md:col-span-2" />
         </div>
         
         {/* Duration row - show if exercise has duration */}

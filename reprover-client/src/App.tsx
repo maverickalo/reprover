@@ -9,6 +9,7 @@ import { PageWrapper } from './components/PageWrapper';
 import { Button } from './components/Button';
 import { ApiClient } from './api/api';
 import { WorkoutPlan, ExerciseActual, WorkoutLog } from './types/workout';
+import logo from './logo/image.png';
 import './App.css';
 
 interface ToastState {
@@ -84,7 +85,10 @@ function App() {
       <div className="min-h-screen">
         <header className="bg-card-bg border-b border-gray-700 shadow-lg">
           <div className="container py-6">
-            <h1 className="text-4xl font-bold text-primary-400 mb-2">Reprover</h1>
+            <div className="flex items-center gap-4 mb-2">
+              <img src={logo} alt="Reprover Logo" className="h-12 w-12" />
+              <h1 className="text-4xl font-bold text-primary-400">Reprover</h1>
+            </div>
             <p className="text-gray-400">Transform your trainer's messages into structured workout plans</p>
           </div>
         </header>
