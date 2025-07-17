@@ -233,4 +233,28 @@ export class ApiClient {
       throw new Error('An unexpected error occurred');
     }
   }
+
+  static async getWorkoutLogs(limit: number = 50, offset: number = 0): Promise<{ logs: any[], hasMore: boolean }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/workout-logs?limit=${limit}&offset=${offset}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json() as ApiError;
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
 }

@@ -22,6 +22,7 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
   const [showWorkoutSelector, setShowWorkoutSelector] = useState(false);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [endTime, setEndTime] = useState<Date | null>(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   const getTotalRounds = () => {
     const activeWorkout = selectedWorkout || workoutPlan;
@@ -44,6 +45,17 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
     // Start timing when component mounts
     setStartTime(new Date());
   }, []);
+
+  // Update elapsed time every second
+  useEffect(() => {
+    if (!startTime || endTime) return;
+    
+    const interval = setInterval(() => {
+      setElapsedTime(Math.floor((new Date().getTime() - startTime.getTime()) / 1000));
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [startTime, endTime]);
 
   // Load exercise history on mount
   useEffect(() => {
@@ -114,7 +126,19 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
   };
 
   const handleSave = () => {
+    setEndTime(new Date());
     onSave(actuals);
+  };
+
+  const formatTime = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
   const totalRounds = getTotalRounds();
@@ -124,9 +148,14 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-100">Log Your Workout</h2>
-          <Button onClick={handleSave} variant="primary" disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Workout'}
-          </Button>
+          <div className="flex items-center gap-4">
+            <div className="text-lg font-mono text-blue-400">
+              {formatTime(elapsedTime)}
+            </div>
+            <Button onClick={handleSave} variant="primary" disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Workout'}
+            </Button>
+          </div>
         </div>
 
         <div className="flex items-center justify-between">

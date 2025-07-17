@@ -5,6 +5,7 @@ import { WorkoutLogger } from './components/WorkoutLogger';
 import { ProgressChart } from './components/ProgressChart';
 import { WorkoutInfoPanel } from './components/WorkoutInfoPanel';
 import { SavedWorkouts } from './components/SavedWorkouts';
+import { WorkoutHistory } from './components/WorkoutHistory';
 import { Login } from './components/Login';
 import { Toast } from './components/Toast';
 import { PageWrapper } from './components/PageWrapper';
@@ -21,7 +22,7 @@ interface ToastState {
   type: 'success' | 'error' | 'info';
 }
 
-type AppView = 'plan' | 'log' | 'progress' | 'saved';
+type AppView = 'plan' | 'log' | 'progress' | 'saved' | 'history';
 
 function AppContent() {
   const { user, logout, loading } = useAuth();
@@ -34,6 +35,7 @@ function AppContent() {
     message: '', 
     type: 'info' 
   });
+  const [workoutStartTime, setWorkoutStartTime] = useState<Date | null>(null);
 
   const showToast = useCallback((message: string, type: 'success' | 'error' | 'info') => {
     setToast({ show: true, message, type });
@@ -91,14 +93,19 @@ function AppContent() {
     
     setIsSaving(true);
     try {
+      const endTime = new Date();
+      const duration = workoutStartTime ? endTime.getTime() - workoutStartTime.getTime() : undefined;
+      
       const workoutLog: WorkoutLog = {
         timestamp: new Date().toISOString(),
         plan: workoutPlan,
-        actuals: actuals
+        actuals: actuals,
+        duration: duration
       };
       
       await ApiClient.logWorkout(workoutLog);
       showToast('Workout logged successfully!', 'success');
+      setWorkoutStartTime(null); // Reset for next workout
     } catch (error) {
       console.error('Failed to save workout log:', error);
       showToast('Failed to save workout log', 'error');
@@ -138,7 +145,12 @@ function AppContent() {
               <>
                 <Button
                   variant={currentView === 'log' ? 'primary' : 'ghost'}
-                  onClick={() => setCurrentView('log')}
+                  onClick={() => {
+                    setCurrentView('log');
+                    if (!workoutStartTime) {
+                      setWorkoutStartTime(new Date());
+                    }
+                  }}
                 >
                   Log Workout
                 </Button>
@@ -155,6 +167,12 @@ function AppContent() {
               onClick={() => setCurrentView('saved')}
             >
               Saved Workouts
+            </Button>
+            <Button
+              variant={currentView === 'history' ? 'primary' : 'ghost'}
+              onClick={() => setCurrentView('history')}
+            >
+              History
             </Button>
           </div>
 
@@ -196,6 +214,10 @@ function AppContent() {
               onLoadWorkout={handleLoadWorkout}
               onSaveSuccess={() => showToast('Workout saved successfully!', 'success')}
             />
+          )}
+
+          {currentView === 'history' && (
+            <WorkoutHistory />
           )}
         </main>
 
