@@ -6,7 +6,7 @@ import { Card } from './Card';
 import { TextInput } from './TextInput';
 import { ExerciseCard } from './ExerciseCard';
 import { staggerListVariants } from '../animations/staggerListVariants';
-import { ApiClient } from '../api/api';
+import { WorkoutService } from '../services/workoutService';
 
 interface WorkoutPlanReviewProps {
   workoutPlan: WorkoutPlan;
@@ -74,7 +74,7 @@ export const WorkoutPlanReview: React.FC<WorkoutPlanReviewProps> = ({
     
     setSaving(true);
     try {
-      await ApiClient.saveWorkout(workoutName, workoutPlan);
+      await WorkoutService.saveWorkout(workoutName, workoutPlan);
       setShowSaveDialog(false);
       setWorkoutName('');
       onSave(); // Call the original onSave callback

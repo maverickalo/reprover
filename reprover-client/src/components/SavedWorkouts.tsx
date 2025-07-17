@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SavedWorkout, WorkoutPlan } from '../types/workout';
-import { ApiClient } from '../api/api';
+import { WorkoutService } from '../services/workoutService';
 import { Button } from './Button';
 import { Card } from './Card';
 import { TextInput } from './TextInput';
 import { staggerListVariants } from '../animations/staggerListVariants';
+import { useAuth } from '../contexts/AuthContext';
 
 interface SavedWorkoutsProps {
   currentWorkout: WorkoutPlan | null;
@@ -18,6 +19,7 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
   onLoadWorkout,
   onSaveSuccess 
 }) => {
+  const { user } = useAuth();
   const [savedWorkouts, setSavedWorkouts] = useState<SavedWorkout[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -25,13 +27,15 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
   const [showSaveForm, setShowSaveForm] = useState(false);
 
   useEffect(() => {
-    loadSavedWorkouts();
-  }, []);
+    if (user) {
+      loadSavedWorkouts();
+    }
+  }, [user]);
 
   const loadSavedWorkouts = async () => {
     setLoading(true);
     try {
-      const workouts = await ApiClient.getSavedWorkouts();
+      const workouts = await WorkoutService.getSavedWorkouts();
       setSavedWorkouts(workouts);
     } catch (error) {
       console.error('Failed to load saved workouts:', error);
@@ -45,7 +49,7 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
 
     setSaving(true);
     try {
-      await ApiClient.saveWorkout(workoutName, currentWorkout);
+      await WorkoutService.saveWorkout(workoutName, currentWorkout);
       setWorkoutName('');
       setShowSaveForm(false);
       loadSavedWorkouts();
@@ -61,7 +65,7 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
     if (!window.confirm('Are you sure you want to delete this workout?')) return;
 
     try {
-      await ApiClient.deleteSavedWorkout(id);
+      await WorkoutService.deleteSavedWorkout(id);
       loadSavedWorkouts();
     } catch (error) {
       console.error('Failed to delete workout:', error);
@@ -82,7 +86,7 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-100">Saved Workouts</h2>
-          {currentWorkout && (
+          {currentWorkout && user && (
             <Button
               onClick={() => setShowSaveForm(!showSaveForm)}
               variant="primary"
@@ -91,6 +95,12 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
             </Button>
           )}
         </div>
+
+        {!user && (
+          <div className="text-gray-400 text-center py-8">
+            Please sign in to save and manage your workouts
+          </div>
+        )}
 
         {showSaveForm && (
           <motion.div
@@ -126,11 +136,11 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
           </motion.div>
         )}
 
-        {loading ? (
+        {user && loading ? (
           <div className="text-center py-8 text-gray-400">Loading saved workouts...</div>
-        ) : savedWorkouts.length === 0 ? (
+        ) : user && savedWorkouts.length === 0 ? (
           <div className="text-center py-8 text-gray-400">No saved workouts yet</div>
-        ) : (
+        ) : user && (
           <motion.div
             className="space-y-3"
             variants={staggerListVariants.list}
