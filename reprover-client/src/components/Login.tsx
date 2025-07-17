@@ -50,7 +50,7 @@ export const Login: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-card-bg rounded-lg p-8 max-w-md w-full"
       >
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-8 -mx-8 -mt-8 bg-black py-6 rounded-t-lg">
           <img src={logo} alt="Reprover Logo" className="h-24 w-auto" />
         </div>
 
