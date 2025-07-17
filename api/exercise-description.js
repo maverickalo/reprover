@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     1. Proper form and technique (2-3 key points)
     2. Common mistakes to avoid (1-2 points)
     3. Which muscles it targets
-    4. A good YouTube search query to find a tutorial video for this exercise (be specific)
+    4. A good YouTube search query to find a tutorial video for this exercise (be specific, like "Jeff Nippard ${exerciseName} form" or "Athlean-X ${exerciseName} tutorial")
     
     Keep the descriptions concise - max 3-4 sentences total. Be direct and actionable.
     
