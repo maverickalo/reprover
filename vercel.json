@@ -17,6 +17,9 @@
     },
     "api/exercise-description.js": {
       "maxDuration": 30
+    },
+    "api/saved-workouts.js": {
+      "maxDuration": 30
     }
   },
   "headers": [

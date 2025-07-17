@@ -54,7 +54,9 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
       parts.push(`${exercise.reps} reps`);
     }
     
-    if (exercise.weight) {
+    if (exercise.weight_range) {
+      parts.push(`@ ${exercise.weight_range}`);
+    } else if (exercise.weight) {
       parts.push(`@ ${exercise.weight}${exercise.weight_unit || 'lbs'}`);
     }
     

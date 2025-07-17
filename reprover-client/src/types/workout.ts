@@ -74,3 +74,12 @@ export interface WorkoutInfo {
   };
   recoveryTime: string;
 }
+
+// Saved Workout types
+export interface SavedWorkout {
+  id: string;
+  name: string;
+  workout: WorkoutPlan;
+  createdAt: string;
+  updatedAt: string;
+}

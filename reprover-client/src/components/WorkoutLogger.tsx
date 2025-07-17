@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { WorkoutPlan, ExerciseActual } from '../types/workout';
+import { WorkoutPlan, ExerciseActual, ExerciseHistory } from '../types/workout';
 import { Button } from './Button';
 import { Card } from './Card';
 import { TextInput } from './TextInput';
 import { staggerListVariants } from '../animations/staggerListVariants';
+import { ApiClient } from '../api/api';
 
 interface WorkoutLoggerProps {
   workoutPlan: WorkoutPlan;
@@ -15,10 +16,49 @@ interface WorkoutLoggerProps {
 export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSave, isSaving }) => {
   const [currentRound, setCurrentRound] = useState(1);
   const [actuals, setActuals] = useState<ExerciseActual[]>([]);
+  const [exerciseHistory, setExerciseHistory] = useState<{ [key: string]: ExerciseHistory[] }>({});
 
   const getTotalRounds = () => {
     return Math.max(...workoutPlan.map(round => round.rounds));
   };
+
+  // Load exercise history on mount
+  useEffect(() => {
+    const loadHistory = async () => {
+      const exerciseNames = workoutPlan.flatMap(r => r.exercises.map(e => e.name));
+      const uniqueExercises = Array.from(new Set(exerciseNames));
+      const historyMap: { [key: string]: ExerciseHistory[] } = {};
+      
+      for (const exerciseName of uniqueExercises) {
+        try {
+          const history = await ApiClient.getExerciseHistory(exerciseName);
+          historyMap[exerciseName] = history;
+        } catch (error) {
+          console.error(`Failed to load history for ${exerciseName}:`, error);
+        }
+      }
+      
+      setExerciseHistory(historyMap);
+    };
+    
+    loadHistory();
+  }, [workoutPlan]);
+
+  // Pre-fill target weights when round changes
+  useEffect(() => {
+    workoutPlan.forEach(round => {
+      if (currentRound <= round.rounds) {
+        round.exercises.forEach(exercise => {
+          if (exercise.weight) {
+            const existing = actuals.find(a => a.name === exercise.name && a.round === currentRound);
+            if (!existing || !existing.weight) {
+              updateActual(exercise.name, 'weight', exercise.weight);
+            }
+          }
+        });
+      }
+    });
+  }, [currentRound]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateActual = (exerciseName: string, field: 'reps' | 'weight', value: number | null) => {
     const existing = actuals.find(a => a.name === exerciseName && a.round === currentRound);
@@ -41,6 +81,13 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
   const getActualValue = (exerciseName: string, field: 'reps' | 'weight') => {
     const actual = actuals.find(a => a.name === exerciseName && a.round === currentRound);
     return actual?.[field] || '';
+  };
+
+  const isPR = (exerciseName: string, weight: number): boolean => {
+    const history = exerciseHistory[exerciseName] || [];
+    if (history.length === 0) return false;
+    const maxWeight = Math.max(...history.filter(h => h.weight).map(h => h.weight || 0));
+    return weight > maxWeight;
   };
 
   const handleSave = () => {
@@ -101,7 +148,15 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
                   variants={staggerListVariants.item}
                   className="bg-dark-bg rounded-lg p-4 border border-gray-800"
                 >
-                  <h3 className="text-lg font-semibold text-gray-100 mb-3">{exercise.name}</h3>
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="text-lg font-semibold text-gray-100">{exercise.name}</h3>
+                    {exercise.weight && getActualValue(exercise.name, 'weight') && 
+                     isPR(exercise.name, parseFloat(getActualValue(exercise.name, 'weight').toString())) && (
+                      <span className="bg-green-600 text-white text-xs px-2 py-1 rounded-full animate-pulse">
+                        🎯 PR!
+                      </span>
+                    )}
+                  </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -119,7 +174,7 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
                     {exercise.weight && (
                       <div>
                         <label className="block text-sm text-gray-400 mb-1">
-                          Target: {exercise.weight} {exercise.weight_unit || 'lbs'}
+                          Target: {exercise.weight_range || `${exercise.weight} ${exercise.weight_unit || 'lbs'}`}
                         </label>
                         <TextInput
                           type="number"

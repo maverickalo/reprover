@@ -4,6 +4,7 @@ import { WorkoutPlanReview } from './components/WorkoutPlanReview';
 import { WorkoutLogger } from './components/WorkoutLogger';
 import { ProgressChart } from './components/ProgressChart';
 import { WorkoutInfoPanel } from './components/WorkoutInfoPanel';
+import { SavedWorkouts } from './components/SavedWorkouts';
 import { Toast } from './components/Toast';
 import { PageWrapper } from './components/PageWrapper';
 import { Button } from './components/Button';
@@ -18,7 +19,7 @@ interface ToastState {
   type: 'success' | 'error' | 'info';
 }
 
-type AppView = 'plan' | 'log' | 'progress';
+type AppView = 'plan' | 'log' | 'progress' | 'saved';
 
 function App() {
   const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +52,12 @@ function App() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleLoadWorkout = (workout: WorkoutPlan) => {
+    setWorkoutPlan(workout);
+    setCurrentView('plan');
+    showToast('Workout loaded successfully!', 'success');
   };
 
   const handleSavePlan = () => {
@@ -92,28 +99,36 @@ function App() {
         </header>
 
         <main className="container py-8">
-          {workoutPlan && (
-            <div className="flex flex-wrap gap-2 mb-8">
-              <Button
-                variant={currentView === 'plan' ? 'primary' : 'ghost'}
-                onClick={() => setCurrentView('plan')}
-              >
-                Plan Builder
-              </Button>
-              <Button
-                variant={currentView === 'log' ? 'primary' : 'ghost'}
-                onClick={() => setCurrentView('log')}
-              >
-                Log Workout
-              </Button>
-              <Button
-                variant={currentView === 'progress' ? 'primary' : 'ghost'}
-                onClick={() => setCurrentView('progress')}
-              >
-                Progress
-              </Button>
-            </div>
-          )}
+          <div className="flex flex-wrap gap-2 mb-8">
+            <Button
+              variant={currentView === 'plan' ? 'primary' : 'ghost'}
+              onClick={() => setCurrentView('plan')}
+            >
+              Plan Builder
+            </Button>
+            {workoutPlan && (
+              <>
+                <Button
+                  variant={currentView === 'log' ? 'primary' : 'ghost'}
+                  onClick={() => setCurrentView('log')}
+                >
+                  Log Workout
+                </Button>
+                <Button
+                  variant={currentView === 'progress' ? 'primary' : 'ghost'}
+                  onClick={() => setCurrentView('progress')}
+                >
+                  Progress
+                </Button>
+              </>
+            )}
+            <Button
+              variant={currentView === 'saved' ? 'primary' : 'ghost'}
+              onClick={() => setCurrentView('saved')}
+            >
+              Saved Workouts
+            </Button>
+          </div>
 
           {currentView === 'plan' && (
             <div className="space-y-8">
@@ -145,6 +160,14 @@ function App() {
 
           {currentView === 'progress' && workoutPlan && (
             <ProgressChart workoutPlan={workoutPlan} />
+          )}
+
+          {currentView === 'saved' && (
+            <SavedWorkouts 
+              currentWorkout={workoutPlan}
+              onLoadWorkout={handleLoadWorkout}
+              onSaveSuccess={() => showToast('Workout saved successfully!', 'success')}
+            />
           )}
         </main>
 

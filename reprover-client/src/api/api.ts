@@ -1,4 +1,4 @@
-import { WorkoutPlan, ParseWorkoutRequest, ApiError, WorkoutLog, LogWorkoutResponse, ExerciseHistory, WorkoutInfo, ExerciseDescription } from '../types/workout';
+import { WorkoutPlan, ParseWorkoutRequest, ApiError, WorkoutLog, LogWorkoutResponse, ExerciseHistory, WorkoutInfo, ExerciseDescription, SavedWorkout } from '../types/workout';
 
 // Use the same domain as the current window to avoid CORS issues
 const API_BASE_URL = window.location.origin;
@@ -154,6 +154,76 @@ export class ApiClient {
 
       const data = await response.json() as { description: ExerciseDescription };
       return data.description;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  static async getSavedWorkouts(): Promise<SavedWorkout[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/saved-workouts`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json() as ApiError;
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json() as SavedWorkout[];
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  static async saveWorkout(name: string, workout: WorkoutPlan): Promise<{ id: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/saved-workouts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, workout }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json() as ApiError;
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json() as { id: string };
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  static async deleteSavedWorkout(id: string): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/saved-workouts?id=${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json() as ApiError;
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
     } catch (error) {
       if (error instanceof Error) {
         throw error;
