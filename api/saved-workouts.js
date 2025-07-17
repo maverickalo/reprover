@@ -1,4 +1,6 @@
-import { db } from '../firebase.js';
+// Temporary in-memory storage for workouts
+// In production, this should use a proper database
+const workouts = new Map();
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -18,18 +20,10 @@ export default async function handler(req, res) {
   try {
     if (req.method === 'GET') {
       // Get all saved workouts
-      const workoutsRef = db.collection('savedWorkouts');
-      const snapshot = await workoutsRef.orderBy('createdAt', 'desc').get();
+      const allWorkouts = Array.from(workouts.values())
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       
-      const workouts = [];
-      snapshot.forEach((doc) => {
-        workouts.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
-      return res.status(200).json(workouts);
+      return res.status(200).json(allWorkouts);
     }
     
     if (req.method === 'POST') {
@@ -40,17 +34,20 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Name and workout are required' });
       }
       
-      const workoutsRef = db.collection('savedWorkouts');
-      const docRef = await workoutsRef.add({
+      const id = Date.now().toString();
+      const workoutData = {
+        id,
         name,
         workout,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      });
+      };
+      
+      workouts.set(id, workoutData);
       
       return res.status(200).json({ 
-        id: docRef.id,
-        message: 'Workout saved successfully' 
+        id,
+        message: 'Workout saved successfully (in-memory storage)' 
       });
     }
     
@@ -62,8 +59,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Workout ID is required' });
       }
       
-      const workoutsRef = db.collection('savedWorkouts');
-      await workoutsRef.doc(id).delete();
+      workouts.delete(id);
       
       return res.status(200).json({ 
         message: 'Workout deleted successfully' 
