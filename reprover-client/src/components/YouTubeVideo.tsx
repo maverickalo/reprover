@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 interface YouTubeVideoProps {
   searchQuery: string;
@@ -6,8 +6,6 @@ interface YouTubeVideoProps {
 }
 
 export const YouTubeVideo: React.FC<YouTubeVideoProps> = ({ searchQuery, exerciseName }) => {
-  const [showVideo, setShowVideo] = useState(false);
-  
   // Create a well-formed search query
   const enhancedQuery = `${searchQuery} proper form technique tutorial`;
   
@@ -38,18 +36,11 @@ export const YouTubeVideo: React.FC<YouTubeVideoProps> = ({ searchQuery, exercis
     }
   }
 
-  if (showVideo && videoInfo) {
+  // If we have a video, show it directly
+  if (videoInfo) {
     return (
       <div className="mt-3 space-y-2">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-400">Video Tutorial by {videoInfo.channel}:</div>
-          <button
-            onClick={() => setShowVideo(false)}
-            className="text-xs text-gray-500 hover:text-gray-300"
-          >
-            Hide
-          </button>
-        </div>
+        <div className="text-sm text-gray-400">Video Tutorial by {videoInfo.channel}:</div>
         <div className="aspect-video w-full max-w-md bg-gray-900 rounded-lg overflow-hidden">
           <iframe
             className="w-full h-full"
@@ -64,32 +55,20 @@ export const YouTubeVideo: React.FC<YouTubeVideoProps> = ({ searchQuery, exercis
     );
   }
 
+  // If no video, show search link
   return (
     <div className="mt-3">
-      <div className="flex items-center gap-2">
-        {videoInfo && (
-          <button
-            onClick={() => setShowVideo(true)}
-            className="inline-flex items-center gap-2 text-primary-400 hover:text-primary-300 transition-colors text-sm"
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-            </svg>
-            Watch Tutorial
-          </button>
-        )}
-        <a 
-          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(enhancedQuery)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-primary-400 hover:text-primary-300 transition-colors text-sm"
-        >
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Search YouTube
-        </a>
-      </div>
+      <a 
+        href={`https://www.youtube.com/results?search_query=${encodeURIComponent(enhancedQuery)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-2 text-primary-400 hover:text-primary-300 transition-colors text-sm"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+        Search YouTube for Tutorial
+      </a>
     </div>
   );
 };
