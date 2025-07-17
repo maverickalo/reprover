@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SavedWorkout, WorkoutPlan } from '../types/workout';
 import { WorkoutService } from '../services/workoutService';
+import { LocalStorageService } from '../services/localStorageService';
 import { Button } from './Button';
 import { Card } from './Card';
 import { TextInput } from './TextInput';
@@ -28,15 +29,23 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
   const [expandedWorkout, setExpandedWorkout] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      loadSavedWorkouts();
-    }
+    loadSavedWorkouts();
   }, [user]);
 
   const loadSavedWorkouts = async () => {
     setLoading(true);
     try {
-      const workouts = await WorkoutService.getSavedWorkouts();
+      let workouts: SavedWorkout[];
+      if (user) {
+        try {
+          workouts = await WorkoutService.getSavedWorkouts();
+        } catch (firestoreError) {
+          console.error('Firestore error, falling back to localStorage:', firestoreError);
+          workouts = await LocalStorageService.getSavedWorkouts();
+        }
+      } else {
+        workouts = await LocalStorageService.getSavedWorkouts();
+      }
       setSavedWorkouts(workouts);
     } catch (error) {
       console.error('Failed to load saved workouts:', error);
@@ -50,14 +59,23 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
 
     setSaving(true);
     try {
-      await WorkoutService.saveWorkout(workoutName, currentWorkout);
+      if (user) {
+        try {
+          await WorkoutService.saveWorkout(workoutName, currentWorkout);
+        } catch (firestoreError) {
+          console.error('Firestore error, saving to localStorage:', firestoreError);
+          await LocalStorageService.saveWorkout(workoutName, currentWorkout);
+        }
+      } else {
+        await LocalStorageService.saveWorkout(workoutName, currentWorkout);
+      }
       setWorkoutName('');
       setShowSaveForm(false);
       loadSavedWorkouts();
       onSaveSuccess?.();
     } catch (error) {
       console.error('Failed to save workout:', error);
-      alert('Failed to save workout. Please ensure you have proper permissions in Firebase.');
+      alert('Failed to save workout.');
     } finally {
       setSaving(false);
     }
@@ -67,7 +85,16 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
     if (!window.confirm('Are you sure you want to delete this workout?')) return;
 
     try {
-      await WorkoutService.deleteSavedWorkout(id);
+      if (user) {
+        try {
+          await WorkoutService.deleteSavedWorkout(id);
+        } catch (firestoreError) {
+          console.error('Firestore error, deleting from localStorage:', firestoreError);
+          await LocalStorageService.deleteSavedWorkout(id);
+        }
+      } else {
+        await LocalStorageService.deleteSavedWorkout(id);
+      }
       loadSavedWorkouts();
     } catch (error) {
       console.error('Failed to delete workout:', error);
