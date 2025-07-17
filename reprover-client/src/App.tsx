@@ -100,6 +100,7 @@ function AppContent() {
       await ApiClient.logWorkout(workoutLog);
       showToast('Workout logged successfully!', 'success');
     } catch (error) {
+      console.error('Failed to save workout log:', error);
       showToast('Failed to save workout log', 'error');
     } finally {
       setIsSaving(false);

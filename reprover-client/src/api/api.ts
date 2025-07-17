@@ -65,6 +65,7 @@ export class ApiClient {
 
   static async logWorkout(workoutLog: WorkoutLog): Promise<LogWorkoutResponse> {
     try {
+      console.log('Sending workout log:', JSON.stringify(workoutLog, null, 2));
       const response = await fetch(`${API_BASE_URL}/api/log-workout`, {
         method: 'POST',
         headers: {
@@ -75,6 +76,7 @@ export class ApiClient {
 
       if (!response.ok) {
         const errorData = await response.json() as ApiError;
+        console.error('Log workout error:', errorData);
         throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 

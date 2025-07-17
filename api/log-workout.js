@@ -6,9 +6,18 @@ const exerciseSchema = z.object({
   name: z.string(),
   reps: z.number().nullable(),
   weight: z.number().nullable(),
-  weight_unit: z.string().nullable(),
-  duration: z.string().nullable(),
-  note: z.string().nullable()
+  weight_range: z.string().nullable().optional(),
+  weight_unit: z.string().nullable().optional(),
+  duration: z.string().nullable().optional(),
+  distance: z.number().nullable().optional(),
+  distance_unit: z.string().nullable().optional(),
+  note: z.string().nullable().optional(),
+  description: z.object({
+    form: z.string(),
+    mistakes: z.string(),
+    muscles: z.string(),
+    youtubeQuery: z.string()
+  }).optional()
 });
 
 const workoutRoundSchema = z.object({
@@ -20,7 +29,8 @@ const exerciseActualSchema = z.object({
   name: z.string(),
   round: z.number(),
   reps: z.number().nullable(),
-  weight: z.number().nullable()
+  weight: z.number().nullable(),
+  weight_unit: z.string().optional()
 });
 
 const workoutLogSchema = z.object({
@@ -51,8 +61,14 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Log the incoming request body for debugging
+    console.log('Received request body:', JSON.stringify(req.body, null, 2));
+    
+    // Clean undefined values from the request body
+    const cleanData = JSON.parse(JSON.stringify(req.body));
+    
     // Validate request body
-    const workoutLog = workoutLogSchema.parse(req.body);
+    const workoutLog = workoutLogSchema.parse(cleanData);
     
     // Initialize Firestore
     const db = getDb();
@@ -73,6 +89,7 @@ export default async function handler(req, res) {
     console.error('Log workout error:', error);
     
     if (error instanceof z.ZodError) {
+      console.error('Validation errors:', JSON.stringify(error.errors, null, 2));
       return res.status(400).json({ 
         error: 'Invalid request data', 
         details: error.errors 
