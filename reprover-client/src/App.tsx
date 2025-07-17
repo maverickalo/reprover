@@ -86,7 +86,7 @@ function App() {
         <header className="bg-black border-b border-gray-800 shadow-lg">
           <div className="container py-6">
             <div className="flex justify-center">
-              <img src={logo} alt="Reprover Logo" className="h-20 w-auto" />
+              <img src={logo} alt="Reprover Logo" className="h-32 w-auto" />
             </div>
           </div>
         </header>
