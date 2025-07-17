@@ -23,8 +23,8 @@ module.exports = {
           800: "#004275",
           900: "#00284f"
         },
-        "dark-bg": "#0f1115",
-        "card-bg": "#1b1e24"
+        "dark-bg": "#000000",
+        "card-bg": "#0a0a0a"
       },
       fontFamily: { 
         sans: ["Inter", "ui-sans-serif", "system-ui"] 
