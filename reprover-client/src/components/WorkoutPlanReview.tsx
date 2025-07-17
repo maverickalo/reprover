@@ -38,6 +38,8 @@ export const WorkoutPlanReview: React.FC<WorkoutPlanReviewProps> = ({
       weight: null,
       weight_unit: null,
       duration: null,
+      distance: null,
+      distance_unit: null,
       note: null
     };
     const newPlan = [...workoutPlan];
@@ -97,43 +99,64 @@ export const WorkoutPlanReview: React.FC<WorkoutPlanReviewProps> = ({
                 {round.exercises.map((exercise, exerciseIndex) => (
                   <motion.div 
                     key={exerciseIndex}
-                    className="grid grid-cols-1 md:grid-cols-6 gap-3 p-3 bg-card-bg rounded-md"
+                    className="p-3 bg-card-bg rounded-md space-y-3"
                     whileHover={{ backgroundColor: "rgba(255,255,255,0.02)" }}
                   >
-                    <TextInput
-                      value={exercise.name}
-                      onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'name', e.target.value)}
-                      placeholder="Exercise name"
-                      className="md:col-span-2"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                      <TextInput
+                        value={exercise.name}
+                        onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'name', e.target.value)}
+                        placeholder="Exercise name"
+                        className="md:col-span-2"
+                      />
+                      
+                      <TextInput
+                        type="number"
+                        value={exercise.reps || ''}
+                        onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'reps', e.target.value ? parseInt(e.target.value) : null)}
+                        placeholder="Reps"
+                      />
+                      
+                      <TextInput
+                        type="number"
+                        value={exercise.weight || ''}
+                        onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight', e.target.value ? parseFloat(e.target.value) : null)}
+                        placeholder="Weight"
+                      />
+                      
+                      <TextInput
+                        value={exercise.weight_unit || ''}
+                        onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight_unit', e.target.value || null)}
+                        placeholder="Unit"
+                      />
+                      
+                      <Button
+                        variant="ghost"
+                        onClick={() => removeExercise(roundIndex, exerciseIndex)}
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        Remove
+                      </Button>
+                    </div>
                     
-                    <TextInput
-                      type="number"
-                      value={exercise.reps || ''}
-                      onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'reps', e.target.value ? parseInt(e.target.value) : null)}
-                      placeholder="Reps"
-                    />
-                    
-                    <TextInput
-                      type="number"
-                      value={exercise.weight || ''}
-                      onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight', e.target.value ? parseFloat(e.target.value) : null)}
-                      placeholder="Weight"
-                    />
-                    
-                    <TextInput
-                      value={exercise.weight_unit || ''}
-                      onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'weight_unit', e.target.value || null)}
-                      placeholder="Unit"
-                    />
-                    
-                    <Button
-                      variant="ghost"
-                      onClick={() => removeExercise(roundIndex, exerciseIndex)}
-                      className="text-red-400 hover:text-red-300"
-                    >
-                      Remove
-                    </Button>
+                    {/* Distance row - only show if exercise has distance or user is editing */}
+                    {(exercise.distance || exercise.distance_unit) && (
+                      <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+                        <div className="md:col-span-2" />
+                        <TextInput
+                          type="number"
+                          value={exercise.distance || ''}
+                          onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'distance', e.target.value ? parseFloat(e.target.value) : null)}
+                          placeholder="Distance"
+                        />
+                        <TextInput
+                          value={exercise.distance_unit || ''}
+                          onChange={(e) => updateExercise(roundIndex, exerciseIndex, 'distance_unit', e.target.value || null)}
+                          placeholder="Unit (m, km, mi)"
+                        />
+                        <div className="md:col-span-2" />
+                      </div>
+                    )}
                   </motion.div>
                 ))}
               </div>

@@ -1,4 +1,4 @@
-import { WorkoutPlan, ParseWorkoutRequest, ApiError, WorkoutLog, LogWorkoutResponse, ExerciseHistory } from '../types/workout';
+import { WorkoutPlan, ParseWorkoutRequest, ApiError, WorkoutLog, LogWorkoutResponse, ExerciseHistory, WorkoutInfo } from '../types/workout';
 
 // Backend API is at reprover.dev (or www.reprover.dev - both work)
 const API_BASE_URL = 'https://reprover.dev';
@@ -103,6 +103,31 @@ export class ApiClient {
       }
 
       const data = await response.json() as ExerciseHistory[];
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  static async getWorkoutInfo(workout: WorkoutPlan): Promise<WorkoutInfo> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/workout-info`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ workout }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json() as ApiError;
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json() as WorkoutInfo;
       return data;
     } catch (error) {
       if (error instanceof Error) {

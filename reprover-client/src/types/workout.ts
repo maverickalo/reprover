@@ -4,6 +4,8 @@ export interface Exercise {
   weight: number | null;
   weight_unit: string | null;
   duration: string | null;
+  distance: number | null;
+  distance_unit: string | null;
   note: string | null;
 }
 
@@ -48,4 +50,18 @@ export interface ExerciseHistory {
   reps: number | null;
   weight: number | null;
   round: number;
+}
+
+// Workout Info types
+export interface WorkoutInfo {
+  workoutType: string;
+  muscleGroups: string[];
+  estimatedCalories: number;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
+  tips: string[];
+  modifications: {
+    easier: string[];
+    harder: string[];
+  };
+  recoveryTime: string;
 }

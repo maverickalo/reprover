@@ -3,6 +3,7 @@ import { WorkoutInput } from './components/WorkoutInput';
 import { WorkoutPlanReview } from './components/WorkoutPlanReview';
 import { WorkoutLogger } from './components/WorkoutLogger';
 import { ProgressChart } from './components/ProgressChart';
+import { WorkoutInfoPanel } from './components/WorkoutInfoPanel';
 import { Toast } from './components/Toast';
 import { PageWrapper } from './components/PageWrapper';
 import { Button } from './components/Button';
@@ -120,11 +121,14 @@ function App() {
               />
               
               {workoutPlan && (
-                <WorkoutPlanReview 
-                  workoutPlan={workoutPlan} 
-                  onChange={setWorkoutPlan}
-                  onSave={handleSavePlan}
-                />
+                <>
+                  <WorkoutInfoPanel workoutPlan={workoutPlan} />
+                  <WorkoutPlanReview 
+                    workoutPlan={workoutPlan} 
+                    onChange={setWorkoutPlan}
+                    onSave={handleSavePlan}
+                  />
+                </>
               )}
             </div>
           )}
