@@ -2,11 +2,19 @@ export interface Exercise {
   name: string;
   reps: number | null;
   weight: number | null;
+  weight_range: string | null;
   weight_unit: string | null;
   duration: string | null;
   distance: number | null;
   distance_unit: string | null;
   note: string | null;
+  description?: ExerciseDescription;
+}
+
+export interface ExerciseDescription {
+  form: string;
+  mistakes: string;
+  muscles: string;
 }
 
 export interface WorkoutRound {

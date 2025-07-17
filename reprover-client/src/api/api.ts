@@ -1,4 +1,4 @@
-import { WorkoutPlan, ParseWorkoutRequest, ApiError, WorkoutLog, LogWorkoutResponse, ExerciseHistory, WorkoutInfo } from '../types/workout';
+import { WorkoutPlan, ParseWorkoutRequest, ApiError, WorkoutLog, LogWorkoutResponse, ExerciseHistory, WorkoutInfo, ExerciseDescription } from '../types/workout';
 
 // Use the same domain as the current window to avoid CORS issues
 const API_BASE_URL = window.location.origin;
@@ -129,6 +129,31 @@ export class ApiClient {
 
       const data = await response.json() as WorkoutInfo;
       return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
+
+  static async getExerciseDescription(exerciseName: string): Promise<ExerciseDescription> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/exercise-description`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ exerciseName }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json() as ApiError;
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json() as { description: ExerciseDescription };
+      return data.description;
     } catch (error) {
       if (error instanceof Error) {
         throw error;

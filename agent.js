@@ -9,6 +9,7 @@ const workoutSchema = z.array(
         name: z.string(),
         reps: z.number().nullable(),
         weight: z.number().nullable(),
+        weight_range: z.string().nullable(), // For ranges like "24-32kg"
         weight_unit: z.string().nullable(),
         duration: z.string().nullable(),
         distance: z.number().nullable(),
@@ -38,6 +39,7 @@ const parseWorkout = async (text) => {
         "name": <string>,
         "reps": <number or null>,
         "weight": <number or null>,
+        "weight_range": <string or null>,
         "weight_unit": <string or null>,
         "duration": <string or null>,
         "distance": <number or null>,
@@ -50,22 +52,34 @@ const parseWorkout = async (text) => {
   Example responses:
   - "3 rounds: 10 push-ups, 15 squats at 135lbs":
     [{"rounds": 3, "exercises": [
-      {"name": "push-ups", "reps": 10, "weight": null, "weight_unit": null, "duration": null, "distance": null, "distance_unit": null, "note": null},
-      {"name": "squats", "reps": 15, "weight": 135, "weight_unit": "lbs", "duration": null, "distance": null, "distance_unit": null, "note": null}
+      {"name": "Push-ups", "reps": 10, "weight": null, "weight_range": null, "weight_unit": null, "duration": null, "distance": null, "distance_unit": null, "note": null},
+      {"name": "Squats", "reps": 15, "weight": 135, "weight_range": null, "weight_unit": "lbs", "duration": null, "distance": null, "distance_unit": null, "note": null}
     ]}]
   
   - "Row 1000 meters, then 20 burpees":
     [{"rounds": 1, "exercises": [
-      {"name": "row", "reps": null, "weight": null, "weight_unit": null, "duration": null, "distance": 1000, "distance_unit": "meters", "note": null},
-      {"name": "burpees", "reps": 20, "weight": null, "weight_unit": null, "duration": null, "distance": null, "distance_unit": null, "note": null}
-      ]
-    }
-  ]
+      {"name": "Row", "reps": null, "weight": null, "weight_range": null, "weight_unit": null, "duration": null, "distance": 1000, "distance_unit": "meters", "note": null},
+      {"name": "Burpees", "reps": 20, "weight": null, "weight_range": null, "weight_unit": null, "duration": null, "distance": null, "distance_unit": null, "note": null}
+    ]}]
+    
+  - "Dumbbell press 24-32kg*12":
+    [{"rounds": 1, "exercises": [
+      {"name": "Dumbbell Press", "reps": 12, "weight": null, "weight_range": "24-32kg", "weight_unit": "kg", "duration": null, "distance": null, "distance_unit": null, "note": null}
+    ]}]
+    
+  - "Plank - 30 seconds each side":
+    [{"rounds": 1, "exercises": [
+      {"name": "Plank", "reps": null, "weight": null, "weight_range": null, "weight_unit": null, "duration": "30 seconds", "distance": null, "distance_unit": null, "note": "each side"}
+    ]}]
   
   Important parsing rules:
+  - Exercise names should be properly capitalized (e.g., "Push-ups" not "push-ups")
+  - For weight ranges like "24-32kg", put the full range string in "weight_range" and extract the unit to "weight_unit"
+  - For time durations (seconds, minutes, hours), put the full time string in "duration" (e.g., "30 seconds", "2 minutes")
+  - If there's a modifier like "each side" or "each arm", put it in "note"
   - If something involves distance (meters, km, miles, yards), put the number in "distance" and unit in "distance_unit"
-  - Duration is for time-based exercises (e.g., "hold plank for 30 seconds")
   - Common distance exercises: row, run, bike, swim, ski
+  - Parse ":30secs" or ":30 secs" as "30 seconds" in duration
   
   Return ONLY the JSON array, no other text.`;
   
