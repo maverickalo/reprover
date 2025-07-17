@@ -4,8 +4,8 @@ import { getDb } from '../lib/firebase.js';
 // Define schemas for validation
 const exerciseSchema = z.object({
   name: z.string(),
-  reps: z.number().nullable(),
-  weight: z.number().nullable(),
+  reps: z.number().nullable().optional(),
+  weight: z.number().nullable().optional(),
   weight_range: z.string().nullable().optional(),
   weight_unit: z.string().nullable().optional(),
   duration: z.string().nullable().optional(),
@@ -18,20 +18,20 @@ const exerciseSchema = z.object({
     muscles: z.string(),
     youtubeQuery: z.string()
   }).optional()
-});
+}).passthrough(); // Allow extra fields
 
 const workoutRoundSchema = z.object({
   rounds: z.number(),
   exercises: z.array(exerciseSchema)
-});
+}).passthrough();
 
 const exerciseActualSchema = z.object({
   name: z.string(),
   round: z.number(),
-  reps: z.number().nullable(),
-  weight: z.number().nullable(),
+  reps: z.number().nullable().optional(),
+  weight: z.number().nullable().optional(),
   weight_unit: z.string().optional()
-});
+}).passthrough();
 
 const workoutLogSchema = z.object({
   timestamp: z.string(), // ISO string
@@ -39,7 +39,7 @@ const workoutLogSchema = z.object({
   actuals: z.array(exerciseActualSchema),
   duration: z.number().optional(), // Duration in milliseconds
   workoutName: z.string().optional() // Name of the saved workout if applicable
-});
+}).passthrough();
 
 export default async function handler(req, res) {
   // Enable CORS
@@ -90,9 +90,11 @@ export default async function handler(req, res) {
     
     if (error instanceof z.ZodError) {
       console.error('Validation errors:', JSON.stringify(error.errors, null, 2));
+      console.error('Failed to validate body:', JSON.stringify(req.body, null, 2));
       return res.status(400).json({ 
         error: 'Invalid request data', 
-        details: error.errors 
+        details: error.errors,
+        receivedData: req.body // Include this for debugging
       });
     }
     
