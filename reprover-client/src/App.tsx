@@ -5,11 +5,13 @@ import { WorkoutLogger } from './components/WorkoutLogger';
 import { ProgressChart } from './components/ProgressChart';
 import { WorkoutInfoPanel } from './components/WorkoutInfoPanel';
 import { SavedWorkouts } from './components/SavedWorkouts';
+import { Login } from './components/Login';
 import { Toast } from './components/Toast';
 import { PageWrapper } from './components/PageWrapper';
 import { Button } from './components/Button';
 import { ApiClient } from './api/api';
 import { WorkoutPlan, ExerciseActual, WorkoutLog } from './types/workout';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import logo from './logo/Flux1.AI-2025-07-16 (2).png';
 import './App.css';
 
@@ -21,7 +23,8 @@ interface ToastState {
 
 type AppView = 'plan' | 'log' | 'progress' | 'saved';
 
-function App() {
+function AppContent() {
+  const { user, logout, loading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
@@ -39,6 +42,18 @@ function App() {
   const hideToast = useCallback(() => {
     setToast(prev => ({ ...prev, show: false }));
   }, []);
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-dark-bg flex items-center justify-center">
+        <div className="text-gray-400">Loading...</div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <Login />;
+  }
 
   const handleParse = async (text: string) => {
     setIsLoading(true);
@@ -92,8 +107,16 @@ function App() {
       <div className="min-h-screen">
         <header className="bg-black border-b border-gray-800 shadow-lg">
           <div className="container py-6">
-            <div className="flex justify-center">
+            <div className="flex justify-between items-center">
+              <div className="w-24" /> {/* Spacer for centering */}
               <img src={logo} alt="Reprover Logo" className="h-32 w-auto" />
+              <Button
+                onClick={logout}
+                variant="ghost"
+                className="text-gray-400 hover:text-gray-200"
+              >
+                Logout
+              </Button>
             </div>
           </div>
         </header>
@@ -179,6 +202,14 @@ function App() {
         />
       </div>
     </PageWrapper>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

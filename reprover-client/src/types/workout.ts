@@ -46,6 +46,8 @@ export interface WorkoutLog {
   timestamp: string; // ISO string
   plan: WorkoutPlan;
   actuals: ExerciseActual[];
+  duration?: number; // Duration in milliseconds
+  workoutName?: string; // Name of the saved workout if applicable
 }
 
 export interface LogWorkoutResponse {

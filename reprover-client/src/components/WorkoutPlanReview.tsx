@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { WorkoutPlan, WorkoutRound, Exercise } from '../types/workout';
 import { Button } from './Button';
@@ -6,6 +6,7 @@ import { Card } from './Card';
 import { TextInput } from './TextInput';
 import { ExerciseCard } from './ExerciseCard';
 import { staggerListVariants } from '../animations/staggerListVariants';
+import { ApiClient } from '../api/api';
 
 interface WorkoutPlanReviewProps {
   workoutPlan: WorkoutPlan;
@@ -18,6 +19,9 @@ export const WorkoutPlanReview: React.FC<WorkoutPlanReviewProps> = ({
   onChange, 
   onSave 
 }) => {
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [workoutName, setWorkoutName] = useState('');
+  const [saving, setSaving] = useState(false);
   const updateRound = (roundIndex: number, field: keyof WorkoutRound, value: any) => {
     const newPlan = [...workoutPlan];
     newPlan[roundIndex] = { ...newPlan[roundIndex], [field]: value };
@@ -61,12 +65,32 @@ export const WorkoutPlanReview: React.FC<WorkoutPlanReviewProps> = ({
     onChange(newPlan);
   };
 
+  const handleSaveClick = () => {
+    setShowSaveDialog(true);
+  };
+
+  const handleSaveWorkout = async () => {
+    if (!workoutName.trim()) return;
+    
+    setSaving(true);
+    try {
+      await ApiClient.saveWorkout(workoutName, workoutPlan);
+      setShowSaveDialog(false);
+      setWorkoutName('');
+      onSave(); // Call the original onSave callback
+    } catch (error) {
+      console.error('Failed to save workout:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <Card>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-100">Review & Edit Plan</h2>
-          <Button onClick={onSave} variant="primary">
+          <Button onClick={handleSaveClick} variant="primary">
             Save Plan
           </Button>
         </div>
@@ -121,6 +145,54 @@ export const WorkoutPlanReview: React.FC<WorkoutPlanReviewProps> = ({
           ))}
         </motion.div>
       </div>
+
+      {/* Save Dialog */}
+      {showSaveDialog && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={() => setShowSaveDialog(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className="bg-card-bg p-6 rounded-lg max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="text-xl font-bold text-gray-100 mb-4">Save Workout Plan</h3>
+              <TextInput
+                value={workoutName}
+                onChange={(e) => setWorkoutName(e.target.value)}
+                placeholder="Enter workout name..."
+                autoFocus
+                onKeyPress={(e) => e.key === 'Enter' && handleSaveWorkout()}
+              />
+              <div className="flex gap-2 mt-4">
+                <Button
+                  onClick={handleSaveWorkout}
+                  variant="primary"
+                  disabled={!workoutName.trim() || saving}
+                  className="flex-1"
+                >
+                  {saving ? 'Saving...' : 'Save'}
+                </Button>
+                <Button
+                  onClick={() => {
+                    setShowSaveDialog(false);
+                    setWorkoutName('');
+                  }}
+                  variant="ghost"
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+      )}
     </Card>
   );
 };

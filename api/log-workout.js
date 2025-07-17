@@ -26,7 +26,9 @@ const exerciseActualSchema = z.object({
 const workoutLogSchema = z.object({
   timestamp: z.string(), // ISO string
   plan: z.array(workoutRoundSchema),
-  actuals: z.array(exerciseActualSchema)
+  actuals: z.array(exerciseActualSchema),
+  duration: z.number().optional(), // Duration in milliseconds
+  workoutName: z.string().optional() // Name of the saved workout if applicable
 });
 
 export default async function handler(req, res) {
