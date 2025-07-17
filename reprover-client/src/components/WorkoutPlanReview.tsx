@@ -80,6 +80,7 @@ export const WorkoutPlanReview: React.FC<WorkoutPlanReviewProps> = ({
       onSave(); // Call the original onSave callback
     } catch (error) {
       console.error('Failed to save workout:', error);
+      alert('Failed to save workout. Please check your connection and try again.');
     } finally {
       setSaving(false);
     }

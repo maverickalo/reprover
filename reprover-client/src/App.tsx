@@ -71,14 +71,18 @@ function AppContent() {
 
   const handleLoadWorkout = (workout: WorkoutPlan) => {
     setWorkoutPlan(workout);
-    setCurrentView('plan');
-    showToast('Workout loaded successfully!', 'success');
+    setCurrentView('log');
+    showToast('Workout loaded! Ready to start logging.', 'success');
   };
 
   const handleSavePlan = () => {
     if (workoutPlan) {
       console.log('Saving workout plan:', JSON.stringify(workoutPlan, null, 2));
-      showToast('Plan ready! Switch to "Log Workout" to track your progress.', 'success');
+      showToast('Workout saved successfully!', 'success');
+      // Redirect to saved workouts page after a short delay
+      setTimeout(() => {
+        setCurrentView('saved');
+      }, 1000);
     }
   };
 

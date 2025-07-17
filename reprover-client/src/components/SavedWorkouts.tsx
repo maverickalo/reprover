@@ -25,6 +25,7 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
   const [saving, setSaving] = useState(false);
   const [workoutName, setWorkoutName] = useState('');
   const [showSaveForm, setShowSaveForm] = useState(false);
+  const [expandedWorkout, setExpandedWorkout] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -56,6 +57,7 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
       onSaveSuccess?.();
     } catch (error) {
       console.error('Failed to save workout:', error);
+      alert('Failed to save workout. Please ensure you have proper permissions in Firebase.');
     } finally {
       setSaving(false);
     }
@@ -77,8 +79,23 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric', 
-      year: 'numeric' 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
     });
+  };
+
+  const getWorkoutSummary = (workout: WorkoutPlan) => {
+    const totalExercises = workout.reduce((sum, round) => sum + round.exercises.length * round.rounds, 0);
+    const uniqueExercises = new Set(workout.flatMap(round => round.exercises.map(ex => ex.name))).size;
+    const totalRounds = workout.reduce((sum, round) => sum + round.rounds, 0);
+    
+    return {
+      totalExercises,
+      uniqueExercises,
+      totalRounds,
+      exercises: workout.flatMap(round => round.exercises.map(ex => ex.name))
+    };
   };
 
   return (
@@ -147,39 +164,99 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
             initial="hidden"
             animate="show"
           >
-            {savedWorkouts.map((savedWorkout) => (
-              <motion.div
-                key={savedWorkout.id}
-                variants={staggerListVariants.item}
-                className="bg-dark-bg rounded-lg p-4 flex justify-between items-center hover:bg-gray-800 transition-colors"
-              >
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-100">{savedWorkout.name}</h3>
-                  <p className="text-sm text-gray-400">
-                    Saved on {formatDate(savedWorkout.createdAt)}
-                  </p>
-                  <p className="text-sm text-gray-500 mt-1">
-                    {savedWorkout.workout.reduce((total, round) => total + round.exercises.length * round.rounds, 0)} total exercises
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => onLoadWorkout(savedWorkout.workout)}
-                    variant="primary"
-                    className="text-sm"
+            {savedWorkouts.map((savedWorkout) => {
+              const summary = getWorkoutSummary(savedWorkout.workout);
+              const isExpanded = expandedWorkout === savedWorkout.id;
+              
+              return (
+                <motion.div
+                  key={savedWorkout.id}
+                  variants={staggerListVariants.item}
+                  className="bg-dark-bg rounded-lg overflow-hidden"
+                >
+                  <div 
+                    className="p-4 cursor-pointer hover:bg-gray-800 transition-colors"
+                    onClick={() => setExpandedWorkout(isExpanded ? null : savedWorkout.id)}
                   >
-                    Load
-                  </Button>
-                  <Button
-                    onClick={() => handleDeleteWorkout(savedWorkout.id)}
-                    variant="ghost"
-                    className="text-sm text-red-400 hover:text-red-300"
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-gray-100">{savedWorkout.name}</h3>
+                        <p className="text-sm text-gray-400 mt-1">
+                          Last saved: {formatDate(savedWorkout.updatedAt || savedWorkout.createdAt)}
+                        </p>
+                        <div className="flex gap-4 mt-2 text-sm text-gray-500">
+                          <span>{summary.totalRounds} rounds</span>
+                          <span>{summary.uniqueExercises} unique exercises</span>
+                          <span>{summary.totalExercises} total exercises</span>
+                        </div>
+                      </div>
+                      <motion.svg
+                        className="w-5 h-5 text-gray-400"
+                        animate={{ rotate: isExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </motion.svg>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="border-t border-gray-800"
+                    >
+                      <div className="p-4 space-y-4">
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-medium text-gray-300">Exercises:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {Array.from(new Set(summary.exercises)).map((exercise, idx) => (
+                              <span 
+                                key={idx}
+                                className="px-2 py-1 bg-gray-800 text-gray-400 text-xs rounded"
+                              >
+                                {exercise}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            onClick={() => onLoadWorkout(savedWorkout.workout)}
+                            variant="primary"
+                            className="flex-1"
+                          >
+                            Start Workout
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              onLoadWorkout(savedWorkout.workout);
+                              // Could add edit mode here
+                            }}
+                            variant="ghost"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() => handleDeleteWorkout(savedWorkout.id)}
+                            variant="ghost"
+                            className="text-red-400 hover:text-red-300"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              );
+            })}
           </motion.div>
         )}
       </div>
