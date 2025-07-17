@@ -55,10 +55,32 @@ export class WorkoutService {
     }
 
     try {
+      // Clean the workout data to remove undefined values
+      const cleanedWorkout = workout.map(round => ({
+        rounds: round.rounds,
+        exercises: round.exercises.map(exercise => {
+          const cleanExercise: any = {
+            name: exercise.name
+          };
+          
+          // Only include defined values
+          if (exercise.reps !== null && exercise.reps !== undefined) cleanExercise.reps = exercise.reps;
+          if (exercise.weight !== null && exercise.weight !== undefined) cleanExercise.weight = exercise.weight;
+          if (exercise.weight_range !== null && exercise.weight_range !== undefined) cleanExercise.weight_range = exercise.weight_range;
+          if (exercise.weight_unit !== null && exercise.weight_unit !== undefined) cleanExercise.weight_unit = exercise.weight_unit;
+          if (exercise.duration !== null && exercise.duration !== undefined) cleanExercise.duration = exercise.duration;
+          if (exercise.distance !== null && exercise.distance !== undefined) cleanExercise.distance = exercise.distance;
+          if (exercise.distance_unit !== null && exercise.distance_unit !== undefined) cleanExercise.distance_unit = exercise.distance_unit;
+          if (exercise.note !== null && exercise.note !== undefined) cleanExercise.note = exercise.note;
+          
+          return cleanExercise;
+        })
+      }));
+
       const workoutsRef = collection(db, 'savedWorkouts');
       const docRef = await addDoc(workoutsRef, {
         name,
-        workout,
+        workout: cleanedWorkout,
         userId: user.uid,
         userEmail: user.email,
         createdAt: serverTimestamp(),
