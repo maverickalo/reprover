@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/static/css/main.88a41338.css",
+    "main.js": "/static/js/main.b362730d.js",
+    "static/js/453.661d91f4.chunk.js": "/static/js/453.661d91f4.chunk.js",
+    "static/media/Flux1.AI-2025-07-16 (2).png": "/static/media/Flux1.AI-2025-07-16 (2).dd27524c4f886cfb8acb.png",
+    "index.html": "/index.html",
+    "main.88a41338.css.map": "/static/css/main.88a41338.css.map",
+    "main.b362730d.js.map": "/static/js/main.b362730d.js.map",
+    "453.661d91f4.chunk.js.map": "/static/js/453.661d91f4.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.88a41338.css",
+    "static/js/main.b362730d.js"
+  ]
+}

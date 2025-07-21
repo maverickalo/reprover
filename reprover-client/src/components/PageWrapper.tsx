@@ -15,18 +15,16 @@ export const PageWrapper: React.FC<PageWrapperProps> = ({ children, pageKey }) =
   
   return (
     <AnimatePresenceWrapper mode="wait">
-      {pageKey && (
-        <motion.main
-          key={pageKey}
-          initial="initial"
-          animate="enter"
-          exit="exit"
-          variants={variants}
-          className="min-h-screen"
-        >
-          {children}
-        </motion.main>
-      )}
+      <motion.main
+        key={pageKey || 'default'}
+        initial="initial"
+        animate="enter"
+        exit="exit"
+        variants={variants}
+        className="min-h-screen"
+      >
+        {children}
+      </motion.main>
     </AnimatePresenceWrapper>
   );
 };

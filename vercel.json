@@ -20,6 +20,9 @@
     },
     "api/saved-workouts.js": {
       "maxDuration": 30
+    },
+    "api/workout-logs.js": {
+      "maxDuration": 30
     }
   },
   "headers": [

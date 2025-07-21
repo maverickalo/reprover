@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ApiClient } from '../api/api';
 import { ExerciseHistory as ExerciseHistoryType } from '../types/workout';
@@ -13,13 +13,7 @@ export const ExerciseHistory: React.FC<ExerciseHistoryProps> = ({ exerciseName, 
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    if (show && !loaded && exerciseName) {
-      loadHistory();
-    }
-  }, [show, exerciseName, loaded]);
-
-  const loadHistory = async () => {
+  const loadHistory = useCallback(async () => {
     setLoading(true);
     try {
       const data = await ApiClient.getExerciseHistory(exerciseName);
@@ -30,7 +24,13 @@ export const ExerciseHistory: React.FC<ExerciseHistoryProps> = ({ exerciseName, 
     } finally {
       setLoading(false);
     }
-  };
+  }, [exerciseName]);
+
+  useEffect(() => {
+    if (show && !loaded && exerciseName) {
+      loadHistory();
+    }
+  }, [show, exerciseName, loaded, loadHistory]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

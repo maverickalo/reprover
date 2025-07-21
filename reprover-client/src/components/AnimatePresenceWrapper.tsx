@@ -7,7 +7,7 @@ interface AnimatePresenceWrapperProps {
 }
 
 // Wrapper to fix TypeScript issues with AnimatePresence in React 18
-export const AnimatePresenceWrapper: React.FC<AnimatePresenceWrapperProps> = ({ children, mode }) => {
+export const AnimatePresenceWrapper: React.FC<AnimatePresenceWrapperProps> = ({ children, mode = "wait" }) => {
   return (
     <>{React.createElement(AnimatePresence as any, { mode }, children)}</>
   );

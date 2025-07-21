@@ -30,7 +30,7 @@ export const ExerciseCard: React.FC<ExerciseCardProps> = ({
     // Reset description when exercise name changes
     setShowDescription(false);
     updateExercise(roundIndex, exerciseIndex, 'description', undefined);
-  }, [exercise.name]);
+  }, [exercise.name, roundIndex, exerciseIndex, updateExercise]);
 
   const loadDescription = async () => {
     if (exercise.description || loading) return;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { SavedWorkout, WorkoutPlan } from '../types/workout';
 import { WorkoutService } from '../services/workoutService';
@@ -28,11 +28,7 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [expandedWorkout, setExpandedWorkout] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadSavedWorkouts();
-  }, [user]);
-
-  const loadSavedWorkouts = async () => {
+  const loadSavedWorkouts = useCallback(async () => {
     setLoading(true);
     try {
       let workouts: SavedWorkout[];
@@ -52,7 +48,11 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadSavedWorkouts();
+  }, [loadSavedWorkouts]);
 
   const handleSaveWorkout = async () => {
     if (!currentWorkout || !workoutName.trim()) return;

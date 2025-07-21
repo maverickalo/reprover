@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { WorkoutPlan, ExerciseActual, ExerciseHistory, SavedWorkout } from '../types/workout';
+import { WorkoutPlan, ExerciseActual, ExerciseHistory } from '../types/workout';
 import { Button } from './Button';
 import { Card } from './Card';
 import { TextInput } from './TextInput';
@@ -17,9 +17,7 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
   const [currentRound, setCurrentRound] = useState(1);
   const [actuals, setActuals] = useState<ExerciseActual[]>([]);
   const [exerciseHistory, setExerciseHistory] = useState<{ [key: string]: ExerciseHistory[] }>({});
-  const [savedWorkouts, setSavedWorkouts] = useState<SavedWorkout[]>([]);
-  const [selectedWorkout, setSelectedWorkout] = useState<WorkoutPlan | null>(workoutPlan);
-  const [showWorkoutSelector, setShowWorkoutSelector] = useState(false);
+  const [selectedWorkout] = useState<WorkoutPlan | null>(workoutPlan);
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -29,20 +27,8 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
     return Math.max(...activeWorkout.map(round => round.rounds));
   };
 
-  // Load saved workouts on mount
+  // Start timing when component mounts
   useEffect(() => {
-    const loadSavedWorkouts = async () => {
-      try {
-        const workouts = await ApiClient.getSavedWorkouts();
-        setSavedWorkouts(workouts);
-      } catch (error) {
-        console.error('Failed to load saved workouts:', error);
-      }
-    };
-    
-    loadSavedWorkouts();
-    
-    // Start timing when component mounts
     setStartTime(new Date());
   }, []);
 

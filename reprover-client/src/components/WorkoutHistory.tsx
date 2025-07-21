@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+// import { motion } from 'framer-motion';
 import { Card } from './Card';
-import { Button } from './Button';
 import { WorkoutLog } from '../types/workout';
 import { ApiClient } from '../api/api';
 
@@ -26,6 +25,8 @@ export const WorkoutHistory: React.FC<WorkoutHistoryProps> = () => {
     try {
       setIsLoading(true);
       const response = await ApiClient.getWorkoutLogs();
+      console.log('Workout logs response:', response);
+      console.log('Number of logs:', response.logs.length);
       setLogs(response.logs);
     } catch (error) {
       console.error('Failed to load workout logs:', error);
@@ -101,13 +102,9 @@ export const WorkoutHistory: React.FC<WorkoutHistoryProps> = () => {
       <Card>
         <h2 className="text-2xl font-bold text-gray-100 mb-6">Workout History</h2>
         
-        <motion.div
-          className="space-y-4"
-          initial="hidden"
-          animate="visible"
-        >
+        <div className="space-y-4">
           {logs.map((log) => (
-            <motion.div
+            <div
               key={log.id}
               className="border border-gray-700 rounded-lg p-4 hover:border-gray-600 transition-colors cursor-pointer"
               onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
@@ -179,9 +176,9 @@ export const WorkoutHistory: React.FC<WorkoutHistoryProps> = () => {
                   )}
                 </div>
               )}
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </Card>
     </div>
   );
