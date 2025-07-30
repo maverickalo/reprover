@@ -1,0 +1,10 @@
+{
+  "root": "reprover-client/build",
+  "clean_urls": false,
+  "routes": {
+    "/api/**": {
+      "origin": "https://${APP_NAME}.herokuapp.com"
+    },
+    "/**": "index.html"
+  }
+}
