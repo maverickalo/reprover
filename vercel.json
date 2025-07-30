@@ -1,4 +1,5 @@
 {
+  "outputDirectory": "reprover-client/build",
   "functions": {
     "api/parse-workout.js": {
       "maxDuration": 30
@@ -22,6 +23,9 @@
       "maxDuration": 30
     },
     "api/workout-logs.js": {
+      "maxDuration": 30
+    },
+    "api/analyze-workout.js": {
       "maxDuration": 30
     }
   },
