@@ -6,6 +6,7 @@ import { ProgressChart } from './components/ProgressChart';
 import { WorkoutInfoPanel } from './components/WorkoutInfoPanel';
 import { SavedWorkouts } from './components/SavedWorkouts';
 import { WorkoutHistory } from './components/WorkoutHistory';
+import { LastWorkoutSummary } from './components/LastWorkoutSummary';
 import { Login } from './components/Login';
 import { Toast } from './components/Toast';
 import { PageWrapper } from './components/PageWrapper';
@@ -22,7 +23,7 @@ interface ToastState {
   type: 'success' | 'error' | 'info';
 }
 
-type AppView = 'plan' | 'log' | 'progress' | 'saved';
+type AppView = 'plan' | 'log' | 'progress' | 'saved' | 'history';
 
 function AppContent() {
   const { user, logout, loading } = useAuth();
@@ -168,31 +169,32 @@ function AppContent() {
             >
               Saved Workouts
             </Button>
+            <Button
+              variant={currentView === 'history' ? 'primary' : 'ghost'}
+              onClick={() => setCurrentView('history')}
+            >
+              History
+            </Button>
           </div>
 
           {currentView === 'plan' && (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2 space-y-8">
-                <WorkoutInput 
-                  onParse={handleParse} 
-                  isLoading={isLoading} 
-                />
-                
-                {workoutPlan && (
-                  <>
-                    <WorkoutInfoPanel workoutPlan={workoutPlan} />
-                    <WorkoutPlanReview 
-                      workoutPlan={workoutPlan} 
-                      onChange={setWorkoutPlan}
-                      onSave={handleSavePlan}
-                    />
-                  </>
-                )}
-              </div>
+            <div className="space-y-8">
+              <LastWorkoutSummary />
+              <WorkoutInput 
+                onParse={handleParse} 
+                isLoading={isLoading} 
+              />
               
-              <div className="lg:col-span-1">
-                <WorkoutHistory />
-              </div>
+              {workoutPlan && (
+                <>
+                  <WorkoutInfoPanel workoutPlan={workoutPlan} />
+                  <WorkoutPlanReview 
+                    workoutPlan={workoutPlan} 
+                    onChange={setWorkoutPlan}
+                    onSave={handleSavePlan}
+                  />
+                </>
+              )}
             </div>
           )}
 
@@ -214,6 +216,10 @@ function AppContent() {
               onLoadWorkout={handleLoadWorkout}
               onSaveSuccess={() => showToast('Workout saved successfully!', 'success')}
             />
+          )}
+
+          {currentView === 'history' && (
+            <WorkoutHistory />
           )}
 
         </main>
