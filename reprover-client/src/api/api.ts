@@ -257,4 +257,29 @@ export class ApiClient {
       throw new Error('An unexpected error occurred');
     }
   }
+
+  static async analyzeWorkout(workoutLog: WorkoutLog): Promise<{ analysis: string; scalingRecommendations: any }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/analyze-workout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(workoutLog),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json() as ApiError;
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred');
+    }
+  }
 }

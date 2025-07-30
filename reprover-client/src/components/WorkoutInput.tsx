@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './Button';
 import { TextInput } from './TextInput';
 import { Card } from './Card';
+
+const WORKOUT_INPUT_STORAGE_KEY = 'reprover_workout_input_draft';
+const DEBOUNCE_DELAY = 500;
 
 interface WorkoutInputProps {
   onParse: (text: string) => void;
@@ -11,11 +14,42 @@ interface WorkoutInputProps {
 
 export const WorkoutInput: React.FC<WorkoutInputProps> = ({ onParse, isLoading }) => {
   const [inputText, setInputText] = useState('');
+  const debounceTimer = useRef<NodeJS.Timeout>();
+
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(WORKOUT_INPUT_STORAGE_KEY);
+    if (savedDraft) {
+      setInputText(savedDraft);
+    }
+  }, []);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newValue = e.target.value;
+    setInputText(newValue);
+    
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    
+    debounceTimer.current = setTimeout(() => {
+      localStorage.setItem(WORKOUT_INPUT_STORAGE_KEY, newValue);
+    }, DEBOUNCE_DELAY);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputText.trim()) {
       onParse(inputText);
+      setInputText('');
+      localStorage.removeItem(WORKOUT_INPUT_STORAGE_KEY);
     }
   };
 
@@ -42,7 +76,7 @@ Round 2: 4 rounds
           multiline
           rows={10}
           value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
+          onChange={handleInputChange}
           placeholder={placeholderText}
           disabled={isLoading}
         />

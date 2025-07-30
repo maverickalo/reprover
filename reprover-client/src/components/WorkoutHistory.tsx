@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 // import { motion } from 'framer-motion';
 import { Card } from './Card';
+import { Button } from './Button';
 import { WorkoutLog } from '../types/workout';
 import { ApiClient } from '../api/api';
 
@@ -10,12 +11,21 @@ interface WorkoutLogWithId extends WorkoutLog {
   exerciseNames?: string[];
 }
 
+interface AnalysisState {
+  [logId: string]: {
+    loading: boolean;
+    data?: any;
+    error?: string;
+  };
+}
+
 interface WorkoutHistoryProps {}
 
 export const WorkoutHistory: React.FC<WorkoutHistoryProps> = () => {
   const [logs, setLogs] = useState<WorkoutLogWithId[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedLog, setExpandedLog] = useState<string | null>(null);
+  const [analyses, setAnalyses] = useState<AnalysisState>({});
 
   useEffect(() => {
     loadWorkoutLogs();
@@ -77,6 +87,43 @@ export const WorkoutHistory: React.FC<WorkoutHistoryProps> = () => {
       (uniqueNames.length > 3 ? ` +${uniqueNames.length - 3} more` : '');
   };
 
+  const getCompletedExerciseSummary = (log: WorkoutLogWithId): { [key: string]: { reps: number[], weights: number[] } } => {
+    const summary: { [key: string]: { reps: number[], weights: number[] } } = {};
+    
+    log.actuals.forEach(actual => {
+      if (!summary[actual.name]) {
+        summary[actual.name] = { reps: [], weights: [] };
+      }
+      if (actual.reps) summary[actual.name].reps.push(actual.reps);
+      if (actual.weight) summary[actual.name].weights.push(actual.weight);
+    });
+    
+    return summary;
+  };
+
+  const handleAnalyzeWorkout = async (log: WorkoutLogWithId) => {
+    setAnalyses(prev => ({
+      ...prev,
+      [log.id]: { loading: true }
+    }));
+    
+    try {
+      const response = await ApiClient.analyzeWorkout(log);
+      const scalingData = response.scalingRecommendations;
+      
+      setAnalyses(prev => ({
+        ...prev,
+        [log.id]: { loading: false, data: scalingData }
+      }));
+    } catch (error) {
+      console.error('Failed to analyze workout:', error);
+      setAnalyses(prev => ({
+        ...prev,
+        [log.id]: { loading: false, error: 'Failed to analyze workout' }
+      }));
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -126,6 +173,20 @@ export const WorkoutHistory: React.FC<WorkoutHistoryProps> = () => {
                       Exercises: <span className="text-gray-200">{log.totalExercises}</span>
                     </span>
                   </div>
+                  
+                  {/* Completed exercises summary */}
+                  <div className="mt-3 text-sm">
+                    <div className="text-gray-400 mb-1">Completed:</div>
+                    <div className="space-y-1">
+                      {Object.entries(getCompletedExerciseSummary(log)).slice(0, 3).map(([exercise, data]) => (
+                        <div key={exercise} className="text-gray-300">
+                          • {exercise}: 
+                          {data.reps.length > 0 && ` ${data.reps.join(', ')} reps`}
+                          {data.weights.length > 0 && ` @ ${data.weights.join(', ')}lbs`}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <div className="ml-4">
                   <svg 
@@ -141,6 +202,81 @@ export const WorkoutHistory: React.FC<WorkoutHistoryProps> = () => {
 
               {expandedLog === log.id && (
                 <div className="mt-4 pt-4 border-t border-gray-700">
+                  <div className="mb-4">
+                    <Button
+                      variant="primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAnalyzeWorkout(log);
+                      }}
+                      disabled={analyses[log.id]?.loading}
+                      className="text-sm py-1 px-3"
+                    >
+                      {analyses[log.id]?.loading ? 'Analyzing...' : 'Analyze & Get Scaling Recommendations'}
+                    </Button>
+                  </div>
+                  
+                  {analyses[log.id]?.data && (
+                    <div className="mt-4 p-4 bg-gray-800 rounded-lg">
+                      <h4 className="text-sm font-semibold text-gray-100 mb-3">Workout Analysis</h4>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <div className="text-sm text-gray-400">Effort Level</div>
+                          <div className="text-gray-200">
+                            {analyses[log.id].data.effortLevel}/10 - {analyses[log.id].data.effortDescription}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <div className="text-sm text-gray-400 mb-1">Strengths</div>
+                          <ul className="list-disc list-inside text-sm text-gray-300">
+                            {analyses[log.id].data.strengths?.map((strength: string, i: number) => (
+                              <li key={i}>{strength}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        
+                        <div>
+                          <div className="text-sm text-gray-400 mb-1">Progression Recommendations</div>
+                          <ul className="list-disc list-inside text-sm text-gray-300">
+                            {analyses[log.id].data.progressionRecommendations?.map((rec: string, i: number) => (
+                              <li key={i}>{rec}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        
+                        {analyses[log.id].data.scalingStrategy && (
+                          <div>
+                            <div className="text-sm text-gray-400">Scaling Strategy</div>
+                            <div className="text-sm text-gray-200">{analyses[log.id].data.scalingStrategy}</div>
+                          </div>
+                        )}
+                        
+                        {analyses[log.id].data.nextWorkoutTargets && (
+                          <div>
+                            <div className="text-sm text-gray-400 mb-1">Next Workout Targets</div>
+                            <div className="space-y-1">
+                              {Object.entries(analyses[log.id].data.nextWorkoutTargets).map(([exercise, target]: [string, any]) => (
+                                <div key={exercise} className="text-sm text-gray-300">
+                                  <span className="font-medium">{exercise}:</span> 
+                                  {target.reps && ` ${target.reps} reps`}
+                                  {target.weight && ` @ ${target.weight}lbs`}
+                                  {target.notes && ` (${target.notes})`}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {analyses[log.id]?.error && (
+                    <div className="mt-4 p-3 bg-red-900/20 border border-red-800 rounded text-sm text-red-200">
+                      {analyses[log.id].error}
+                    </div>
+                  )}
                   <h4 className="text-sm font-semibold text-gray-300 mb-2">Workout Plan</h4>
                   {log.plan.map((round, roundIndex) => (
                     <div key={roundIndex} className="mb-3">

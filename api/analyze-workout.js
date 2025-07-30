@@ -7,7 +7,26 @@ const openai = new OpenAI({
 });
 
 const analyzeWorkoutSchema = z.object({
-  workoutId: z.string()
+  timestamp: z.string(),
+  plan: z.array(z.object({
+    round_name: z.string(),
+    rounds: z.number(),
+    exercises: z.array(z.object({
+      name: z.string(),
+      reps: z.number().optional(),
+      weight: z.number().optional(),
+      weight_unit: z.string().optional(),
+      duration: z.string().optional()
+    }))
+  })),
+  actuals: z.array(z.object({
+    round: z.number(),
+    name: z.string(),
+    reps: z.number().optional(),
+    weight: z.number().optional(),
+    completed: z.boolean()
+  })),
+  duration: z.number().optional()
 });
 
 export default async function handler(req, res) {
@@ -30,19 +49,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { workoutId } = analyzeWorkoutSchema.parse(req.body);
-    
-    // Get the specific workout
-    const db = getDb();
-    const workoutDoc = await db.collection('logs').doc(workoutId).get();
-    
-    if (!workoutDoc.exists) {
-      return res.status(404).json({ error: 'Workout not found' });
-    }
-    
-    const workout = workoutDoc.data();
+    const workout = analyzeWorkoutSchema.parse(req.body);
     
     // Get user's workout history for context
+    const db = getDb();
     const historySnapshot = await db.collection('logs')
       .orderBy('timestamp', 'desc')
       .limit(10)
@@ -50,8 +60,10 @@ export default async function handler(req, res) {
     
     const history = [];
     historySnapshot.forEach(doc => {
-      if (doc.id !== workoutId) {
-        history.push(doc.data());
+      const data = doc.data();
+      // Only include similar workouts for better comparison
+      if (data.timestamp !== workout.timestamp) {
+        history.push(data);
       }
     });
     
@@ -70,6 +82,7 @@ Please provide:
 3. Areas of Strength (what went well)
 4. Areas for Improvement
 5. Specific weight/rep increases for next workout
+6. Overall scaling strategy (e.g., increase weight by 5-10%, add 1-2 reps, reduce rest time)
 
 Format as JSON with these fields:
 {
@@ -80,7 +93,8 @@ Format as JSON with these fields:
   "improvements": string[],
   "nextWorkoutTargets": {
     "exerciseName": { "weight": number, "reps": number, "notes": string }
-  }
+  },
+  "scalingStrategy": string
 }`;
 
     const response = await openai.chat.completions.create({
@@ -88,7 +102,7 @@ Format as JSON with these fields:
       messages: [
         {
           role: 'system',
-          content: 'You are a professional fitness coach analyzing workout data. Provide specific, actionable recommendations based on the workout history.'
+          content: 'You are a professional fitness coach analyzing workout data. Provide specific, actionable recommendations based on the workout history. Focus on progressive overload and safe scaling strategies.'
         },
         {
           role: 'user',
@@ -101,13 +115,10 @@ Format as JSON with these fields:
 
     const analysis = JSON.parse(response.choices[0].message.content);
     
-    // Save analysis to the workout document
-    await db.collection('logs').doc(workoutId).update({
-      analysis,
-      analyzedAt: new Date().toISOString()
+    res.status(200).json({
+      analysis: response.choices[0].message.content,
+      scalingRecommendations: analysis
     });
-    
-    res.status(200).json(analysis);
     
   } catch (error) {
     console.error('Analyze workout error:', error);

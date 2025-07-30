@@ -21,6 +21,7 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
   const [startTime, setStartTime] = useState<Date | null>(null);
   const [endTime, setEndTime] = useState<Date | null>(null);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [scalingRecommendations, setScalingRecommendations] = useState<{ [exerciseName: string]: string }>({});
 
   const getTotalRounds = () => {
     const activeWorkout = selectedWorkout || workoutPlan;
@@ -49,17 +50,34 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
       const exerciseNames = workoutPlan.flatMap(r => r.exercises.map(e => e.name));
       const uniqueExercises = Array.from(new Set(exerciseNames));
       const historyMap: { [key: string]: ExerciseHistory[] } = {};
+      const recommendations: { [exerciseName: string]: string } = {};
       
       for (const exerciseName of uniqueExercises) {
         try {
           const history = await ApiClient.getExerciseHistory(exerciseName);
           historyMap[exerciseName] = history;
+          
+          // Generate scaling recommendations based on history
+          if (history.length > 0) {
+            const lastWorkout = history[0];
+            const avgWeight = history.slice(0, 3).reduce((sum, h) => sum + (h.weight || 0), 0) / Math.min(3, history.length);
+            
+            if (lastWorkout.weight) {
+              // Since we don't have completion status, suggest based on average
+              if (avgWeight > 0 && lastWorkout.weight >= avgWeight) {
+                recommendations[exerciseName] = `Last: ${lastWorkout.weight}lbs - Consider ${Math.round(lastWorkout.weight * 1.05)}-${Math.round(lastWorkout.weight * 1.1)}lbs`;
+              } else {
+                recommendations[exerciseName] = `Last: ${lastWorkout.weight}lbs - Try same weight or ${Math.round(lastWorkout.weight * 1.05)}lbs`;
+              }
+            }
+          }
         } catch (error) {
           console.error(`Failed to load history for ${exerciseName}:`, error);
         }
       }
       
       setExerciseHistory(historyMap);
+      setScalingRecommendations(recommendations);
     };
     
     loadHistory();
@@ -195,6 +213,12 @@ export const WorkoutLogger: React.FC<WorkoutLoggerProps> = ({ workoutPlan, onSav
                       </span>
                     )}
                   </div>
+                  
+                  {scalingRecommendations[exercise.name] && (
+                    <div className="mb-3 p-2 bg-blue-900/20 border border-blue-800 rounded text-xs text-blue-200">
+                      💡 {scalingRecommendations[exercise.name]}
+                    </div>
+                  )}
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>

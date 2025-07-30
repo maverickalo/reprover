@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { SavedWorkout, WorkoutPlan } from '../types/workout';
 import { WorkoutService } from '../services/workoutService';
 import { LocalStorageService } from '../services/localStorageService';
+import { ApiClient } from '../api/api';
 import { Button } from './Button';
 import { Card } from './Card';
 import { TextInput } from './TextInput';
@@ -27,6 +28,8 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
   const [workoutName, setWorkoutName] = useState('');
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [expandedWorkout, setExpandedWorkout] = useState<string | null>(null);
+  const [workoutHistory, setWorkoutHistory] = useState<{ [workoutId: string]: any[] }>({});
+  const [loadingHistory, setLoadingHistory] = useState<{ [workoutId: string]: boolean }>({});
 
   const loadSavedWorkouts = useCallback(async () => {
     setLoading(true);
@@ -125,6 +128,27 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
     };
   };
 
+  const loadWorkoutHistory = async (workout: WorkoutPlan) => {
+    const workoutKey = JSON.stringify(workout);
+    if (workoutHistory[workoutKey] || loadingHistory[workoutKey]) return;
+    
+    setLoadingHistory(prev => ({ ...prev, [workoutKey]: true }));
+    
+    try {
+      const logs = await ApiClient.getWorkoutLogs();
+      const matchingLogs = logs.logs.filter(log => {
+        // Check if this log matches the saved workout structure
+        return JSON.stringify(log.plan) === JSON.stringify(workout);
+      });
+      
+      setWorkoutHistory(prev => ({ ...prev, [workoutKey]: matchingLogs }));
+    } catch (error) {
+      console.error('Failed to load workout history:', error);
+    } finally {
+      setLoadingHistory(prev => ({ ...prev, [workoutKey]: false }));
+    }
+  };
+
   return (
     <Card>
       <div className="space-y-6">
@@ -203,7 +227,12 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
                 >
                   <div 
                     className="p-4 cursor-pointer hover:bg-gray-800 transition-colors"
-                    onClick={() => setExpandedWorkout(isExpanded ? null : savedWorkout.id)}
+                    onClick={() => {
+                      setExpandedWorkout(isExpanded ? null : savedWorkout.id);
+                      if (!isExpanded) {
+                        loadWorkoutHistory(savedWorkout.workout);
+                      }
+                    }}
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -253,6 +282,78 @@ export const SavedWorkouts: React.FC<SavedWorkoutsProps> = ({
                           </div>
                         </div>
 
+                        {/* Show previous completion history */}
+                        {(() => {
+                          const workoutKey = JSON.stringify(savedWorkout.workout);
+                          const history = workoutHistory[workoutKey] || [];
+                          const isLoading = loadingHistory[workoutKey];
+                          
+                          return (
+                            <>
+                              {isLoading && (
+                                <div className="text-sm text-gray-400">Loading workout history...</div>
+                              )}
+                              
+                              {!isLoading && history.length > 0 && (
+                                <div className="space-y-2 mb-4">
+                                  <h4 className="text-sm font-medium text-gray-300">Previous Completions:</h4>
+                                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                                    {history.slice(0, 3).map((log, idx) => {
+                                      const completionRate = Math.round(
+                                        (log.actuals.length / 
+                                        (savedWorkout.workout.reduce((sum, round) => 
+                                          sum + (round.exercises.length * round.rounds), 0)
+                                        )) * 100
+                                      );
+                                      
+                                      // Get max weights for key exercises
+                                      const exerciseWeights: { [key: string]: number } = {};
+                                      log.actuals.forEach((actual: any) => {
+                                        if (actual.weight) {
+                                          if (!exerciseWeights[actual.name] || actual.weight > exerciseWeights[actual.name]) {
+                                            exerciseWeights[actual.name] = actual.weight;
+                                          }
+                                        }
+                                      });
+                                      
+                                      return (
+                                        <div key={idx} className="p-3 bg-gray-800 rounded text-sm">
+                                          <div className="flex justify-between text-gray-300">
+                                            <span>{new Date(log.timestamp).toLocaleDateString()}</span>
+                                            <span>{completionRate}% completed</span>
+                                          </div>
+                                          {Object.entries(exerciseWeights).length > 0 && (
+                                            <div className="mt-1 text-xs text-gray-400">
+                                              Weights: {Object.entries(exerciseWeights).slice(0, 2).map(
+                                                ([ex, weight]) => `${ex}: ${weight}lbs`
+                                              ).join(', ')}
+                                              {Object.entries(exerciseWeights).length > 2 && ' ...'}
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                  
+                                  {history.length > 0 && (
+                                    <div className="p-3 bg-blue-900/20 border border-blue-800 rounded text-sm">
+                                      <div className="text-blue-200 font-medium mb-1">Scaling Recommendation:</div>
+                                      <div className="text-blue-100 text-xs">
+                                        Based on your last performance, consider:
+                                        <ul className="list-disc list-inside mt-1">
+                                          <li>Increase weights by 5-10% if you completed 90%+</li>
+                                          <li>Add 1-2 reps per set if weights felt comfortable</li>
+                                          <li>Reduce rest time by 15-30 seconds between sets</li>
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          );
+                        })()}
+                        
                         <div className="flex gap-2 pt-2">
                           <Button
                             onClick={() => onLoadWorkout(savedWorkout.workout)}

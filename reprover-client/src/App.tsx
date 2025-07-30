@@ -22,7 +22,7 @@ interface ToastState {
   type: 'success' | 'error' | 'info';
 }
 
-type AppView = 'plan' | 'log' | 'progress' | 'saved' | 'history';
+type AppView = 'plan' | 'log' | 'progress' | 'saved';
 
 function AppContent() {
   const { user, logout, loading } = useAuth();
@@ -168,31 +168,31 @@ function AppContent() {
             >
               Saved Workouts
             </Button>
-            <Button
-              variant={currentView === 'history' ? 'primary' : 'ghost'}
-              onClick={() => setCurrentView('history')}
-            >
-              History
-            </Button>
           </div>
 
           {currentView === 'plan' && (
-            <div className="space-y-8">
-              <WorkoutInput 
-                onParse={handleParse} 
-                isLoading={isLoading} 
-              />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                <WorkoutInput 
+                  onParse={handleParse} 
+                  isLoading={isLoading} 
+                />
+                
+                {workoutPlan && (
+                  <>
+                    <WorkoutInfoPanel workoutPlan={workoutPlan} />
+                    <WorkoutPlanReview 
+                      workoutPlan={workoutPlan} 
+                      onChange={setWorkoutPlan}
+                      onSave={handleSavePlan}
+                    />
+                  </>
+                )}
+              </div>
               
-              {workoutPlan && (
-                <>
-                  <WorkoutInfoPanel workoutPlan={workoutPlan} />
-                  <WorkoutPlanReview 
-                    workoutPlan={workoutPlan} 
-                    onChange={setWorkoutPlan}
-                    onSave={handleSavePlan}
-                  />
-                </>
-              )}
+              <div className="lg:col-span-1">
+                <WorkoutHistory />
+              </div>
             </div>
           )}
 
@@ -216,9 +216,6 @@ function AppContent() {
             />
           )}
 
-          {currentView === 'history' && (
-            <WorkoutHistory />
-          )}
         </main>
 
         <Toast
