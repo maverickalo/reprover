@@ -8,23 +8,28 @@ const openai = new OpenAI({
 
 const analyzeWorkoutSchema = z.object({
   timestamp: z.string(),
+  workoutName: z.string().optional(),
   plan: z.array(z.object({
-    round_name: z.string(),
+    round_name: z.string().optional(),
     rounds: z.number(),
     exercises: z.array(z.object({
       name: z.string(),
-      reps: z.number().optional(),
-      weight: z.number().optional(),
-      weight_unit: z.string().optional(),
-      duration: z.string().optional()
+      reps: z.number().optional().nullable(),
+      weight: z.number().optional().nullable(),
+      weight_range: z.string().optional().nullable(),
+      weight_unit: z.string().optional().nullable(),
+      duration: z.string().optional().nullable(),
+      distance: z.number().optional().nullable(),
+      distance_unit: z.string().optional().nullable(),
+      note: z.string().optional().nullable()
     }))
   })),
   actuals: z.array(z.object({
     round: z.number(),
     name: z.string(),
-    reps: z.number().optional(),
-    weight: z.number().optional(),
-    completed: z.boolean()
+    reps: z.number().optional().nullable(),
+    weight: z.number().optional().nullable(),
+    completed: z.boolean().optional()
   })),
   duration: z.number().optional()
 });
@@ -49,6 +54,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('Analyze workout request body:', JSON.stringify(req.body, null, 2));
     const workout = analyzeWorkoutSchema.parse(req.body);
     
     // Get user's workout history for context
@@ -124,15 +130,18 @@ Format as JSON with these fields:
     console.error('Analyze workout error:', error);
     
     if (error instanceof z.ZodError) {
+      console.error('Validation errors:', JSON.stringify(error.errors, null, 2));
       return res.status(400).json({ 
         error: 'Invalid request data', 
-        details: error.errors 
+        details: error.errors,
+        issues: error.issues 
       });
     }
     
     res.status(500).json({ 
       error: 'Failed to analyze workout', 
-      details: error.message 
+      details: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 }
